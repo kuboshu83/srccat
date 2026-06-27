@@ -22,7 +22,7 @@ def cat_srcfiles(
     recursive: bool,
     collect_files: Callable[[Path, re.Pattern[str], bool], Iterator[Path]],
 ) -> str:
-    lang = render.Language.from_str(language)
+    lang = model.Language.from_str(language)
     srcfiles: list[model.SrcFile] = []
     for path in collect_files(srcdir, pattern, recursive):
         srcfiles.append(
@@ -66,7 +66,7 @@ def _scan_dir(srcdir: str, recursive: bool) -> Iterator[os.DirEntry[str]]:
 
 
 if __name__ == "__main__":
-    language = render.Language.from_str("Python")
+    language = model.Language.from_str("Python")
     srcdir = Path(".")
     pattern = re.compile(r"^.+\.py$")
     main(language.value.display_name, srcdir, pattern, True)
