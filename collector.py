@@ -22,7 +22,7 @@ class FileFilterByFileNamePattern(FileFilter):
         return self._pattern.fullmatch(file.name) is not None
 
 
-class FileFilters(FileFilter):
+class AndFileFilters(FileFilter):
     def __init__(self, filters: Sequence[FileFilter]):
         self._filters = filters
 

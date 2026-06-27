@@ -27,7 +27,7 @@ def build_review_document(
 if __name__ == "__main__":
     language = model.Language.from_str("Python")
     srcdir = Path(".")
-    filters = collector.FileFilters(
+    filters = collector.AndFileFilters(
         [collector.FileFilterByFileNamePattern(re.compile(r"^.+\.py$"))]
     )
     logger = logging.getLogger("srccat")
