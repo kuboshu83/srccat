@@ -120,14 +120,17 @@ def _scan_dir(srcdir: str, recursive: bool) -> Iterator[os.DirEntry[str]]:
                             and (entry.name not in EXCLUDE_DIR)
                         ):
                             dir_stack.append(entry.path)
-                    except (FileNotFoundError, PermissionError):
+                    except FileNotFoundError, PermissionError:
                         continue
-        except (FileNotFoundError, PermissionError):
+        except FileNotFoundError, PermissionError:
             continue
 
 
 if __name__ == "__main__":
-    language = "Python 3.14.2"
+    import render
+    language = render.Language.from_str("Python")
     srcdir = Path(".")
     pattern = re.compile(r"^.+\.py$")
-    main(language, srcdir, pattern, True)
+    main(language.value.display_name, srcdir, pattern, True)
+
+    print(render.render_review_document(language))
