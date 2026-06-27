@@ -1,24 +1,27 @@
 from pathlib import Path
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from logging import Logger
 import re
 import os
 
-_EXCLUDE_DIR = [".venv", "venv"]
 
 
 class FileCollector:
+    _EXCLUDE_DIR = [".venv", "venv"]
+
     def __init__(
         self,
         srcdir: Path,
         pattern: re.Pattern[str],
         recursive: bool,
+        exclude_dirs: Sequence[str] = [],
         logger: Logger | None = None,
     ):
         self._srcdir = srcdir
         self._pattern = pattern
         self._recursive = recursive
         self._logger = logger
+        self._exclude_dirs = [*self._EXCLUDE_DIR, *exclude_dirs]
 
     def collect_target_files(self) -> Iterator[Path]:
         for entry in self._collect_files(str(self._srcdir), self._recursive):
@@ -41,7 +44,7 @@ class FileCollector:
                             elif (
                                 entry.is_dir(follow_symlinks=False)
                                 and recursive
-                                and (entry.name not in _EXCLUDE_DIR)
+                                and (entry.name not in self._exclude_dirs)
                             ):
                                 dir_stack.append(entry.path)
                         except FileNotFoundError:

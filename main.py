@@ -27,5 +27,5 @@ if __name__ == "__main__":
     language = model.Language.from_str("Python")
     srcdir = Path(".")
     pattern = re.compile(r"^.+\.py$")
-    file_collector = collector.FileCollector(srcdir, pattern, True, None)
+    file_collector = collector.FileCollector(srcdir, pattern, True, [], None)
     main(language, file_collector)
