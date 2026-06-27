@@ -26,6 +26,7 @@ def build_review_document(
 if __name__ == "__main__":
     language = model.Language.from_str("Python")
     srcdir = Path(".")
-    pattern = re.compile(r"^.+\.py$")
-    file_collector = collector.FileCollector(srcdir, pattern, True, [], None)
+    filters = collector.FileFilters()
+    filters.add_filter(collector.FileFilterByFileNamePattern(re.compile(r"^.+\.py$")))
+    file_collector = collector.FileCollector(srcdir, filters, True, [], None)
     main(language, file_collector)
