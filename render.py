@@ -22,7 +22,7 @@ def render_review_document(
     for srcfile in srcfiles:
         srcs.append({"file": srcfile.filepath, "code": srcfile.code})
     return template.render(
-        language=language, language_version=language_version, srcs=srcs
+        language=language.display_name, language_version=language_version, srcs=srcs
     )
 
 
