@@ -7,11 +7,11 @@ import collector
 
 
 def main(language: model.Language, collector: collector.FileCollector):
-    text = cat_srcfiles(language, collector)
+    text = build_review_document(language, collector)
     print(text)
 
 
-def cat_srcfiles(
+def build_review_document(
     language: model.Language,
     collector: collector.FileCollector,
 ) -> str:

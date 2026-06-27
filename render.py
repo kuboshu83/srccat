@@ -18,11 +18,8 @@ def render_review_document(
     language_version: str | None = None,
 ) -> str:
     template = _env.get_template(language.template_filename)
-    srcs: list[dict[str, str]] = []
-    for srcfile in srcfiles:
-        srcs.append({"file": srcfile.filepath, "code": srcfile.code})
     return template.render(
-        language=language.display_name, language_version=language_version, srcs=srcs
+        language=language.display_name, language_version=language_version, srcs=srcfiles
     )
 
 
