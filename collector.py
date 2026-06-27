@@ -100,4 +100,3 @@ class FileCollector:
             self._logger.warning("%s: %s", msg, ex, exc_info=True)
 
 
-__all__ = ["FileCollector", "FileFilter", "FileFilters"]

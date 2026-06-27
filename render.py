@@ -23,5 +23,3 @@ def render_review_document(
         language=language.display_name, language_version=language_version, srcs=srcfiles
     )
 
-
-__all__ = ["render_review_document"]
