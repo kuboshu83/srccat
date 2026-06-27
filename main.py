@@ -1,75 +1,13 @@
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
 from typing import Callable
 from pathlib import Path
-from dataclasses import dataclass
 import os
 import re
 
+import model
+import render
+
 EXCLUDE_DIR = [".venv", "venv"]
-
-
-@dataclass(frozen=True)
-class SrcFile:
-    filepath: str
-    code: str
-
-    def __post_init__(self):
-        if self.filepath == "":
-            raise ValueError("file name is blank")
-        if self.code == "":
-            raise ValueError(f"code is blank: {self.filepath}")
-
-
-@dataclass(frozen=True)
-class Header:
-    language: str
-    language_version: str | None = None
-
-
-def _cat_srcfiles(header: Header, files: Sequence[SrcFile]) -> str:
-    header_block = _create_header_block(header)
-    filelist_block = _create_filelist_block(files)
-    code_block = _create_code_blocks(files)
-    return f"""
-{header_block}
-
-{filelist_block}
-
-{code_block}
-"""
-
-
-def _create_header_block(header: Header) -> str:
-    return f"""
-++++ 言語情報
-language={header.language}
-version={header.language_version}
-"""
-
-
-def _create_filelist_block(files: Sequence[SrcFile]) -> str:
-    lines: list[str] = ["++++ ファイル一覧"]
-    for path in files:
-        lines.append(f"filepath={path.filepath}")
-    return "\n".join(lines)
-
-
-def _create_code_blocks(files: Sequence[SrcFile]) -> str:
-    blocks: list[str] = []
-    for file in files:
-        block = _create_file_block(file)
-        blocks.append(block)
-    return "\n".join(blocks)
-
-
-def _create_file_block(file: SrcFile) -> str:
-    return f"""
-++++ ソースコード情報
-filepath={file.filepath}
-code=```
-{file.code}
-```
-"""
 
 
 def main(language: str, srcdir: Path, pattern: re.Pattern[str], recursive: bool):
@@ -84,13 +22,14 @@ def cat_srcfiles(
     recursive: bool,
     collect_files: Callable[[Path, re.Pattern[str], bool], Iterator[Path]],
 ) -> str:
-    header = Header(language)
-    srcfiles: list[SrcFile] = []
+    lang = render.Language.from_str(language)
+    srcfiles: list[model.SrcFile] = []
     for path in collect_files(srcdir, pattern, recursive):
         srcfiles.append(
-            SrcFile(str(path), path.read_text(encoding="utf-8", errors="strict"))
+            model.SrcFile(str(path), path.read_text(encoding="utf-8", errors="strict"))
         )
-    return _cat_srcfiles(header, srcfiles)
+    return render.render_review_document(lang, srcfiles)
+    # return _cat_srcfiles(header, srcfiles)
 
 
 def _search_srcfiles(
@@ -120,17 +59,14 @@ def _scan_dir(srcdir: str, recursive: bool) -> Iterator[os.DirEntry[str]]:
                             and (entry.name not in EXCLUDE_DIR)
                         ):
                             dir_stack.append(entry.path)
-                    except FileNotFoundError, PermissionError:
+                    except (FileNotFoundError, PermissionError):
                         continue
-        except FileNotFoundError, PermissionError:
+        except (FileNotFoundError, PermissionError):
             continue
 
 
 if __name__ == "__main__":
-    import render
     language = render.Language.from_str("Python")
     srcdir = Path(".")
     pattern = re.compile(r"^.+\.py$")
     main(language.value.display_name, srcdir, pattern, True)
-
-    print(render.render_review_document(language))

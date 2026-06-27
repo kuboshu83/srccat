@@ -2,6 +2,9 @@ from enum import Enum
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from dataclasses import dataclass
+from collections.abc import Sequence
+
+import model
 
 _MODULE_DIR = Path(__file__).resolve().parent
 
@@ -39,10 +42,13 @@ _env = Environment(
 
 
 def render_review_document(
-    language: Language, language_version: str | None = None
+    language: Language, srcfiles: Sequence[model.SrcFile], language_version: str | None = None
 ) -> str:
     template = _env.get_template(language.template_filename)
-    return template.render(language=language, language_version=language_version)
+    srcs: list[dict[str, str]] = []
+    for srcfile in srcfiles:
+        srcs.append({"file": srcfile.filepath, "code": srcfile.code})
+    return template.render(language=language, language_version=language_version, srcs=srcs)
 
 
 __all__ = ["Language", "render_review_document"]
