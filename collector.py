@@ -14,7 +14,7 @@ class FileCollector:
         srcdir: Path,
         pattern: re.Pattern[str],
         recursive: bool,
-        exclude_dirs: Sequence[str] = [],
+        exclude_dirs: Sequence[str],
         logger: Logger | None = None,
     ):
         self._srcdir = srcdir
