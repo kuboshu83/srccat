@@ -23,11 +23,8 @@ class FileFilterByFileNamePattern(FileFilter):
 
 
 class FileFilters(FileFilter):
-    def __init__(self):
-        self._filters: list[FileFilter] = []
-
-    def add_filter(self, filter: FileFilter):
-        self._filters.append(filter)
+    def __init__(self, filters: Sequence[FileFilter]):
+        self._filters = filters
 
     @override
     def is_target(self, file: Path) -> bool:
@@ -61,6 +58,9 @@ class FileCollector:
             yield filepath
 
     def _collect_files(self, srcdir: Path, recursive: bool) -> Iterator[Path]:
+        """
+        深さ優先探索を採用
+        """
         dir_stack: list[Path] = [srcdir]
         while dir_stack:
             p = dir_stack.pop()
@@ -77,16 +77,14 @@ class FileCollector:
                             ):
                                 dir_stack.append(Path(entry.path))
                         except FileNotFoundError:
-                            self._logger.info(
-                                f"skip file scan: file not found: {entry.path}"
-                            )
+                            self._logger.info("skip file scan: file not found: %s", entry.path)
                             continue
                         except PermissionError as ex:
-                            self._logger.warning(f"skip file scan: {entry.path}", ex)
+                            self._logger.warning("skip file scan: %s: %s", entry.path, ex)
                             continue
             except FileNotFoundError:
-                self._logger.info(f"skip directory scan: file not found: {p}")
+                self._logger.info("skip directory scan: file not found: %s", p)
                 continue
             except PermissionError as ex:
-                self._logger.warning(f"skip directory scan: {p}", ex)
+                self._logger.warning("skip directory scan: %s", p)
                 continue
