@@ -29,7 +29,6 @@ def cat_srcfiles(
             model.SrcFile(str(path), path.read_text(encoding="utf-8", errors="strict"))
         )
     return render.render_review_document(lang, srcfiles)
-    # return _cat_srcfiles(header, srcfiles)
 
 
 def _search_srcfiles(
