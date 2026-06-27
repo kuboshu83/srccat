@@ -5,9 +5,8 @@ import re
 import os
 
 
-
 class FileCollector:
-    _EXCLUDE_DIR = [".venv", "venv"]
+    _EXCLUDE_DIR = (".venv", "venv", "__pycache__", ".git")
 
     def __init__(
         self,
@@ -21,18 +20,18 @@ class FileCollector:
         self._pattern = pattern
         self._recursive = recursive
         self._logger = logger
-        self._exclude_dirs = [*self._EXCLUDE_DIR, *exclude_dirs]
+        self._exclude_dirs = set([*self._EXCLUDE_DIR, *exclude_dirs])
 
     def collect_target_files(self) -> Iterator[Path]:
-        for entry in self._collect_files(str(self._srcdir), self._recursive):
-            if not self._pattern.match(entry.name):
+        for entry in self._collect_files(self._srcdir, self._recursive):
+            if not self._pattern.fullmatch(entry.name):
                 continue
             yield Path(entry.path)
 
     def _collect_files(
-        self, srcdir: str, recursive: bool
+        self, srcdir: Path, recursive: bool
     ) -> Iterator[os.DirEntry[str]]:
-        dir_stack: list[str] = [srcdir]
+        dir_stack: list[Path] = [srcdir]
         while dir_stack:
             p = dir_stack.pop()
             try:
@@ -46,7 +45,7 @@ class FileCollector:
                                 and recursive
                                 and (entry.name not in self._exclude_dirs)
                             ):
-                                dir_stack.append(entry.path)
+                                dir_stack.append(Path(entry.path))
                         except FileNotFoundError:
                             self._log_info(
                                 f"skip file scan: file not found: {entry.path}"
