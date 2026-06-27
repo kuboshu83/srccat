@@ -4,6 +4,7 @@ import re
 import model
 import render
 import collector
+import logging
 
 
 def main(language: model.Language, collector: collector.FileCollector):
@@ -28,5 +29,6 @@ if __name__ == "__main__":
     srcdir = Path(".")
     filters = collector.FileFilters()
     filters.add_filter(collector.FileFilterByFileNamePattern(re.compile(r"^.+\.py$")))
-    file_collector = collector.FileCollector(srcdir, filters, True, [], None)
+    logger = logging.getLogger("srccat")
+    file_collector = collector.FileCollector(srcdir, filters, True, [], logger)
     main(language, file_collector)

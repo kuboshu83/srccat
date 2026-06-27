@@ -46,7 +46,7 @@ class FileCollector:
         filter: FileFilter,
         recursive: bool,
         exclude_dirs: Sequence[str],
-        logger: Logger | None = None,
+        logger: Logger,
     ):
         self._srcdir = srcdir
         self._filter = filter
@@ -77,26 +77,16 @@ class FileCollector:
                             ):
                                 dir_stack.append(Path(entry.path))
                         except FileNotFoundError:
-                            self._log_info(
+                            self._logger.info(
                                 f"skip file scan: file not found: {entry.path}"
                             )
                             continue
                         except PermissionError as ex:
-                            self._log_warning(f"skip file scan: {entry.path}", ex)
+                            self._logger.warning(f"skip file scan: {entry.path}", ex)
                             continue
             except FileNotFoundError:
-                self._log_info(f"skip directory scan: file not found: {p}")
+                self._logger.info(f"skip directory scan: file not found: {p}")
                 continue
             except PermissionError as ex:
-                self._log_warning(f"skip directory scan: {p}", ex)
+                self._logger.warning(f"skip directory scan: {p}", ex)
                 continue
-
-    def _log_info(self, msg: str):
-        if self._logger is not None:
-            self._logger.info(msg)
-
-    def _log_warning(self, msg: str, ex: Exception):
-        if self._logger is not None:
-            self._logger.warning("%s: %s", msg, ex, exc_info=True)
-
-
