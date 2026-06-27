@@ -9,6 +9,7 @@ _MODULE_DIR = Path(__file__).resolve().parent
 _TEMPLATES_DIR = _MODULE_DIR / "templates"
 _env = Environment(
     loader=FileSystemLoader(_TEMPLATES_DIR),
+    autoescape=True,
 )
 
 
