@@ -5,7 +5,6 @@ import os
 import srccat.filefilter
 
 
-
 class CollectAndFilterFiles:
 
     def __init__(
@@ -15,6 +14,7 @@ class CollectAndFilterFiles:
     ):
         self._file_collector = collector
         self._filename_filter = filter
+
     def collect_target_files(self) -> Iterator[Path]:
         for filepath in self._file_collector.collect_files():
             if not self._filename_filter.is_target(filepath):
@@ -23,7 +23,9 @@ class CollectAndFilterFiles:
 
 
 class CollectFiles:
+
     _EXCLUDE_DIR = (".venv", "venv", "__pycache__", ".git")
+
     def __init__(
         self,
         srcdir: Path,
@@ -57,10 +59,14 @@ class CollectFiles:
                             ):
                                 dir_stack.append(Path(entry.path))
                         except FileNotFoundError:
-                            self._logger.info("skip file scan: file not found: %s", entry.path)
+                            self._logger.info(
+                                "skip file scan: file not found: %s", entry.path
+                            )
                             continue
                         except PermissionError as ex:
-                            self._logger.warning("skip file scan: %s: %s", entry.path, ex)
+                            self._logger.warning(
+                                "skip file scan: %s: %s", entry.path, ex
+                            )
                             continue
             except FileNotFoundError:
                 self._logger.info("skip directory scan: file not found: %s", p)
