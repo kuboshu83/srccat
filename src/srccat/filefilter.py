@@ -47,10 +47,10 @@ class CollectAndFilterFiles:
         filter: FileFilter,
     ):
         self._file_collector = collector
-        self._filename_filter = filter
+        self._file_filter = filter
 
     def collect_target_files(self) -> Iterator[Path]:
         for filepath in self._file_collector.collect_files():
-            if not self._filename_filter.is_target(filepath):
+            if not self._file_filter.is_target(filepath):
                 continue
             yield filepath
