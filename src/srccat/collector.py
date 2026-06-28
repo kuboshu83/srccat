@@ -37,15 +37,12 @@ class DirectoryScanner(FileCollector):
         self._scan_recursive = scan_recursive
         self._exclude_dir_names = [*exclude_dir_names, *self._EXCLUDE_DIR_NAMES]
 
-    @override
-    def collect_files(self) -> Iterator[Path]:
-        raise NotImplementedError()
-
 
 class DFSDirectoryScanner(DirectoryScanner):
     """
     ディレクトリをDFSで検索してファイルを取得するクラスです。
     """
+
     def __init__(
         self,
         scan_root_dir: Path,
