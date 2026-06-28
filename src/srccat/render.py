@@ -2,7 +2,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from collections.abc import Sequence
 
-import srccat.model as model
+import srccat.model
 
 _MODULE_DIR = Path(__file__).resolve().parent
 
@@ -13,12 +13,11 @@ _env = Environment(
 
 
 def render_review_document(
-    language: model.Language,
-    srcfiles: Sequence[model.SrcFile],
+    language: srccat.model.Language,
+    srcfiles: Sequence[srccat.model.SrcFile],
     language_version: str | None = None,
 ) -> str:
     template = _env.get_template(language.template_filename)
     return template.render(
         language=language.display_name, language_version=language_version, srcs=srcfiles
     )
-

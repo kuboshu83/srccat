@@ -1,38 +1,40 @@
 from pathlib import Path
 import re
 
-import srccat.model as model
-import srccat.render as render
-import srccat.collector as collector
-import srccat.filter as filter
+import srccat.model
+import srccat.render
+import srccat.collector
+import srccat.filter
 import logging
 
 
-def run(language: model.Language, collector: collector.FileCollector):
+def run(language: srccat.model.Language, collector: srccat.collector.FileCollector):
     text = build_review_document(language, collector)
     print(text)
 
 
 def build_review_document(
-    language: model.Language,
-    collector: collector.FileCollector,
+    language: srccat.model.Language,
+    collector: srccat.collector.FileCollector,
 ) -> str:
-    srcfiles: list[model.SrcFile] = []
+    srcfiles: list[srccat.model.SrcFile] = []
     for path in collector.collect_target_files():
         srcfiles.append(
-            model.SrcFile(str(path), path.read_text(encoding="utf-8", errors="strict"))
+            srccat.model.SrcFile(
+                str(path), path.read_text(encoding="utf-8", errors="strict")
+            )
         )
-    return render.render_review_document(language, srcfiles)
+    return srccat.render.render_review_document(language, srcfiles)
 
 
 def main():
-    language = model.Language.from_str("Python")
+    language = srccat.model.Language.from_str("Python")
     srcdir = Path(".")
-    filters = filter.AndFileFilters(
-        [filter.FileFilterByFileNamePattern(re.compile(r"^.+\.py$"))]
+    filters = srccat.filter.AndFileFilters(
+        [srccat.filter.FileFilterByFileNamePattern(re.compile(r"^.+\.py$"))]
     )
     logger = logging.getLogger("srccat")
-    file_collector = collector.FileCollector(srcdir, filters, True, [], logger)
+    file_collector = srccat.collector.FileCollector(srcdir, filters, True, [], logger)
     run(language, file_collector)
 
 

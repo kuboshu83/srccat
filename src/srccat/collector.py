@@ -2,7 +2,7 @@ from pathlib import Path
 from collections.abc import Iterator, Sequence
 from logging import Logger
 import os
-import srccat.filter as filter
+import srccat.filter
 
 
 
@@ -12,7 +12,7 @@ class FileCollector:
     def __init__(
         self,
         srcdir: Path,
-        filter: filter.FileFilter,
+        filter: srccat.filter.FileFilter,
         recursive: bool,
         exclude_dirs: Sequence[str],
         logger: Logger,
