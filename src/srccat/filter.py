@@ -19,11 +19,17 @@ class FileFilterByFileNamePattern(FileFilter):
 
 
 class AndFileFilters(FileFilter):
+    """
+    複数のフィルタを合成するクラス。
+    """
     def __init__(self, filters: Sequence[FileFilter]):
         self._filters = filters
 
     @override
     def is_target(self, file: Path) -> bool:
+        """
+        フィルタが１つも登録されていない場合は常にTrueを返します
+        """
         for filter in self._filters:
             if not filter.is_target(file):
                 return False
