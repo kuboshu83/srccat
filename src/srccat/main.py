@@ -7,21 +7,24 @@ import logging
 
 
 def run(
-    language: srccat.model.Language, collector: srccat.filefilter.FilteredFileCollector
+    language: srccat.model.Language,
+    collector: srccat.filefilter.FilteredFileCollector,
+    encoding: srccat.model.Encoding,
 ):
-    text = build_review_document(language, collector)
+    text = build_review_document(language, collector, encoding)
     print(text)
 
 
 def build_review_document(
     language: srccat.model.Language,
     collector: srccat.filefilter.FilteredFileCollector,
+    encoding: srccat.model.Encoding,
 ) -> str:
     srcfiles: list[srccat.model.SrcFile] = []
     for path in collector.collect_target_files():
         srcfiles.append(
             srccat.model.SrcFile(
-                str(path), path.read_text(encoding="utf-8", errors="strict")
+                str(path), path.read_text(encoding=encoding.codec, errors="strict")
             )
         )
     return srccat.render.render_review_document(language, srcfiles)
@@ -32,7 +35,8 @@ def main():
     language = config.language
     scan_root_dir = config.scan_root_directory
     filters = srccat.filefilter.create_and_file_filters(
-        filename_patterns=config.source_file_name_patterns + (language.filename_pattern,)
+        filename_patterns=config.source_file_name_patterns
+        + (language.filename_pattern,)
     )
     logger = logging.getLogger("srccat")
     directory_scan_policy = srccat.collector.create_and_directory_scan_policy(
@@ -45,7 +49,8 @@ def main():
         logger=logger,
     )
     file_collector = srccat.filefilter.FilteredFileCollector(file_collector, filters)
-    run(language, file_collector)
+    encoding = config.source_file_encoding
+    run(language, file_collector, encoding)
 
 
 if __name__ == "__main__":
