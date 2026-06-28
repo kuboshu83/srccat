@@ -50,7 +50,7 @@ class TestFileCollector:
                 create_test_dir_structure(tmp_path)
                 logger = mocker.Mock(spec=logging.Logger)
                 policy = srccat.collector.AndDirectoryScanPolicies(
-                    (srccat.collector.RecursiveScanPolicy(False),)
+                    (srccat.collector.DisableScanDirectoryPolicy(),)
                 )
                 collector = srccat.collector.DFSDirectoryScanner(
                     scan_root_dir=tmp_path,
@@ -74,9 +74,7 @@ class TestFileCollector:
                 # arrange
                 create_test_dir_structure(tmp_path)
                 logger = mocker.Mock(spec=logging.Logger)
-                policy = srccat.collector.AndDirectoryScanPolicies(
-                    (srccat.collector.RecursiveScanPolicy(True),)
-                )
+                policy = srccat.collector.AndDirectoryScanPolicies(())
                 collector = srccat.collector.DFSDirectoryScanner(
                     scan_root_dir=tmp_path,
                     directory_scan_policy=policy,

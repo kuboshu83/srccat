@@ -16,17 +16,16 @@ class DirectoryScanPolicy(ABC):
         pass
 
 
-class RecursiveScanPolicy(DirectoryScanPolicy):
+class DisableScanDirectoryPolicy(DirectoryScanPolicy):
     """
-    再起的にディレクトリを検索するかどうかの判定条件
+    全てのディレクトリの検索を無効にしたい場合のポリシー
     """
-
-    def __init__(self, scan_recursive: bool):
-        self._scan_recursive = scan_recursive
-
     @override
     def is_scantarget(self, dirpath: Path) -> bool:
-        return self._scan_recursive
+        """
+        常にFalseを返します。
+        """
+        return False
 
 
 class DirectoryNameScanPolicy(DirectoryScanPolicy):
@@ -55,11 +54,8 @@ class AndDirectoryScanPolicies(DirectoryScanPolicy):
     @override
     def is_scantarget(self, dirpath: Path) -> bool:
         """
-        条件が未登録の場合は常にFalseを返します。
+        条件が未登録の場合は常にTrueを返します。
         """
-        if self._scan_policies == ():
-            return False
-
         for policy in self._scan_policies:
             if not policy.is_scantarget(dirpath):
                 return False

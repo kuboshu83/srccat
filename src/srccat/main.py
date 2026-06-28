@@ -37,7 +37,7 @@ def main():
     )
     logger = logging.getLogger("srccat")
     scan_directory_policy = srccat.collector.AndDirectoryScanPolicies((
-        srccat.collector.RecursiveScanPolicy(True),
+        # srccat.collector.DisableScanDirectoryPolicy(),
         srccat.collector.DirectoryNameScanPolicy(()),
     ))
     file_collector = srccat.collector.DFSDirectoryScanner(srcdir, scan_directory_policy, logger)
