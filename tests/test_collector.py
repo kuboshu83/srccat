@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import override
 from pytest_mock import MockerFixture
 import srccat.collector
-import srccat.filter
+import srccat.filefilter
 import logging
 
 
@@ -42,7 +42,7 @@ def create_test_dir_structure(root: Path):
         file.write_text("")
 
 
-class FakeFilter(srccat.filter.FileFilter):
+class FakeFilter(srccat.filefilter.FileFilter):
     def __init__(self, value: bool):
         self._value = value
 

@@ -2,7 +2,7 @@ from pathlib import Path
 from collections.abc import Iterator, Sequence
 from logging import Logger
 import os
-import srccat.filter
+import srccat.filefilter
 
 
 
@@ -12,20 +12,20 @@ class FileCollector:
     def __init__(
         self,
         srcdir: Path,
-        filter: srccat.filter.FileFilter,
+        filter: srccat.filefilter.FileFilter,
         recursive: bool,
         exclude_dirs: Sequence[str],
         logger: Logger,
     ):
         self._srcdir = srcdir
-        self._filter = filter
+        self._filename_filter = filter
         self._recursive = recursive
         self._logger = logger
         self._exclude_dirs = set([*self._EXCLUDE_DIR, *exclude_dirs])
 
     def collect_target_files(self) -> Iterator[Path]:
         for filepath in self._collect_files():
-            if not self._filter.is_target(filepath):
+            if not self._filename_filter.is_target(filepath):
                 continue
             yield filepath
 

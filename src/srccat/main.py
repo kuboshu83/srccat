@@ -4,7 +4,7 @@ import re
 import srccat.model
 import srccat.render
 import srccat.collector
-import srccat.filter
+import srccat.filefilter
 import logging
 
 
@@ -30,8 +30,8 @@ def build_review_document(
 def main():
     language = srccat.model.Language.from_str("Python")
     srcdir = Path(".")
-    filters = srccat.filter.AndFileFilters(
-        [srccat.filter.FileFilterByFileNamePattern(re.compile(r"^.+\.py$"))]
+    filters = srccat.filefilter.AndFileFilters(
+        [srccat.filefilter.FileFilterByFileNamePattern(re.compile(r"^.+\.py$"))]
     )
     logger = logging.getLogger("srccat")
     file_collector = srccat.collector.FileCollector(srcdir, filters, True, [], logger)

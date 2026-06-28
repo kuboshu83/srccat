@@ -1,4 +1,4 @@
-import srccat.filter
+import srccat.filefilter
 import re
 import pytest
 from pathlib import Path
@@ -12,7 +12,7 @@ class TestFileFilterByFileNamePattern:
             def test_return_true(self, filename: Path):
                 # arrange
                 pattern = re.compile(r"^[a-zA-Z]+\.py$")
-                filter = srccat.filter.FileFilterByFileNamePattern(pattern)
+                filter = srccat.filefilter.FileFilterByFileNamePattern(pattern)
 
                 # act
                 is_target = filter.is_target(filename)
@@ -34,7 +34,7 @@ class TestFileFilterByFileNamePattern:
             def test_return_false(self, filename: Path):
                 # arrange
                 pattern = re.compile(r"^[a-zA-Z]+\.py$")
-                filter = srccat.filter.FileFilterByFileNamePattern(pattern)
+                filter = srccat.filefilter.FileFilterByFileNamePattern(pattern)
 
                 # act
                 is_target = filter.is_target(filename)
@@ -43,7 +43,7 @@ class TestFileFilterByFileNamePattern:
                 assert is_target == False
 
 
-class FakeFilter(srccat.filter.FileFilter):
+class FakeFilter(srccat.filefilter.FileFilter):
     def __init__(self, value: bool):
         self._value = value
 
@@ -57,7 +57,7 @@ class TestAndFilters:
         class TestNormal:
             def test_empty_filter_return_true(self):
                 # arrange
-                filters = srccat.filter.AndFileFilters(())
+                filters = srccat.filefilter.AndFileFilters(())
 
                 # act
                 is_target = filters.is_target(Path(""))
@@ -67,7 +67,7 @@ class TestAndFilters:
 
             def test_return_true(self):
                 # arrange
-                filters = srccat.filter.AndFileFilters(
+                filters = srccat.filefilter.AndFileFilters(
                     (FakeFilter(True), FakeFilter(True))
                 )
 
@@ -79,7 +79,7 @@ class TestAndFilters:
 
             def test_return_false(self):
                 # arrange
-                filters = srccat.filter.AndFileFilters(
+                filters = srccat.filefilter.AndFileFilters(
                     (FakeFilter(True), FakeFilter(False))
                 )
 
