@@ -1,180 +1,153 @@
 [!NOTE]
 これはソースコードからAIで生成したREADMEで仮のものです。
 
-# Source Review Document Builder
+# srccat
 
-Source Review Document Builder は、指定したディレクトリ配下のソースコードを収集し、AIレビュー用のMarkdownドキュメントを生成するツールです。
+## 概要
 
-Jinja2テンプレートを利用することで、レビュー指示や出力形式を自由にカスタマイズできます。
+**srccat** は、プロジェクト内のソースコードを収集し、ChatGPT や Gemini などのLLMへレビューを依頼しやすい形式のドキュメントを生成するCLIツールです。
 
----
-
-# 特徴
-
-* ソースコードを再帰的に収集
-* ファイルフィルタによる対象ファイルの絞り込み
-* 除外ディレクトリの指定に対応
-* Jinja2テンプレートによる柔軟な出力
-* メモリ効率の良いGeneratorベースのファイル探索
+複数のソースファイルを手作業でコピー＆ペーストすることなく、レビュー対象となるコードを1つのテキストへまとめて出力できます。
 
 ---
 
-# 対応言語
+## 主な機能
 
-現在対応している言語
-
-| 言語     |  対応 |
-| ------ | :-: |
-| Python |  ✅  |
-
----
-
-# クイックスタート
-
-```python
-from pathlib import Path
-import logging
-import re
-
-import collector
-import model
-from main import main
-
-language = model.Language.from_str("Python")
-
-filters = collector.FileFilters([
-    collector.FileFilterByFileNamePattern(
-        re.compile(r"^.+\.py$")
-    )
-])
-
-file_collector = collector.FileCollector(
-    srcdir=Path("."),
-    filter=filters,
-    recursive=True,
-    exclude_dirs=[],
-    logger=logging.getLogger("srccat"),
-)
-
-main(language, file_collector)
-```
-
-実行すると、レビュー用Markdownが標準出力へ出力されます。
+- ソースコードの収集
+- 再帰・非再帰ディレクトリ検索
+- 不要なディレクトリの除外
+- 正規表現によるファイル名フィルタ
+- レビュー用ドキュメントの自動生成
+- 新しいプログラミング言語への拡張が容易
 
 ---
 
-# フィルタのカスタマイズ
+# インストール
 
-独自のファイル選択条件を追加できます。
+```bash
+git clone <repository>
 
-例：拡張子でフィルタする場合
+cd srccat
 
-```python
-from pathlib import Path
-import collector
-
-class ExtensionFilter(collector.FileFilter):
-    def __init__(self, ext: str):
-        self._ext = ext
-
-    def is_target(self, file: Path) -> bool:
-        return file.suffix == self._ext
-```
-
-複数条件を組み合わせることもできます。
-
-```python
-filters = collector.FileFilters([
-    ExtensionFilter(".py"),
-    collector.FileFilterByFileNamePattern(
-        re.compile(r".*test.*")
-    ),
-])
+pip install -e .
 ```
 
 ---
 
-# 除外ディレクトリ
+# 使い方
 
-デフォルトで以下のディレクトリは探索対象外です。
+Pythonプロジェクトをレビューする例です。
 
-* `.git`
-* `.venv`
-* `venv`
-* `__pycache__`
+```bash
+python -m srccat.main \
+    --language python \
+    --directory ./src
+```
 
-さらに追加で除外したい場合は、
+生成されたテキストを、そのままChatGPTなどへ貼り付けてレビューを依頼できます。
 
-```python
-exclude_dirs=[
-    "build",
-    "dist",
-]
+---
+
+# コマンドラインオプション
+
+| オプション | 説明 |
+|------------|------|
+| `--language` | 対象プログラミング言語 |
+| `--directory` | 解析対象ディレクトリ |
+| `--recursive` | サブディレクトリも検索する |
+| `--encoding` | ソースコードの文字コード |
+| `--patterns` | 追加するファイル名の正規表現 |
+| `--excludes` | 除外するディレクトリ名 |
+
+---
+
+# ディレクトリ検索
+
+標準では以下のディレクトリを検索対象から除外できます。
+
+- `.git`
+- `.venv`
+- `venv`
+- `__pycache__`
+
+プロジェクト固有のディレクトリは `--excludes` で追加できます。
+
+例
+
+```bash
+--excludes build dist node_modules
+```
+
+---
+
+# ファイルフィルタ
+
+対象ファイルは正規表現で判定されます。
+
+Pythonでは標準で
+
+```text
+*.py
+```
+
+が対象になります。
+
+さらに条件を追加する場合は
+
+```bash
+--patterns ".*service.*"
 ```
 
 のように指定できます。
 
 ---
 
-# テンプレート
+# 出力
 
-出力内容は Jinja2 テンプレートで制御します。
+収集したソースコードは、LLMへそのまま入力できるレビュー用ドキュメントとして出力されます。
 
-テンプレートでは以下の変数が利用できます。
-
-| 変数                 | 説明           |
-| ------------------ | ------------ |
-| `language`         | 言語名          |
-| `language_version` | 言語バージョン      |
-| `srcs`             | 収集したソースコード一覧 |
-
-`srcs` の各要素は次のプロパティを持ちます。
-
-| プロパティ      | 説明     |
-| ---------- | ------ |
-| `filepath` | ファイルパス |
-| `code`     | ソースコード |
+テンプレートを変更することで、レビュー形式を自由にカスタマイズできます。
 
 ---
 
-# 新しい言語を追加する
+# 保守・拡張
 
-新しい言語を追加するには、
+プロジェクトは責務ごとにモジュールを分割しています。
 
-1. `Language` に追加する
-2. 対応するテンプレートを作成する
+| モジュール | 役割 |
+|------------|------|
+| `collector` | ファイル収集 |
+| `filefilter` | ファイル選択 |
+| `config` | 設定管理 |
+| `render` | ドキュメント生成 |
+| `model` | ドメインモデル |
 
-例
+新しい機能を追加する場合は、既存クラスを修正するよりも、新しいクラスやポリシーを追加して組み合わせる設計を推奨します。
 
-```python
-CPP = _LangInfo(
-    "C++",
-    "review_cpp.template",
-)
-```
+---
 
-テンプレート
+# 新しい言語への対応
 
-```
-templates/
-    review_cpp.template
+新しい言語を追加する場合は、以下を実装してください。
+
+1. `Language` に言語を追加
+2. 対応するレビュー用テンプレートを追加
+3. ファイル名パターンを追加
+
+基本的にはこの3点のみで対応できます。
+
+---
+
+# テスト
+
+変更後はユニットテストを実行し、既存機能への影響がないことを確認してください。
+
+```bash
+pytest
 ```
 
 ---
 
-# 制限事項
+# ライセンス
 
-* ソースコードは UTF-8 として読み込みます。
-* シンボリックリンクは探索しません。
-* 出力は標準出力へ行われます。
-
----
-
-# 今後の予定
-
-* CLI対応
-* 対応言語の追加
-* 出力先ファイル指定
-* エンコーディング設定
-* ファイルサイズ制限
-* フィルタ機能の拡張
+MIT License
