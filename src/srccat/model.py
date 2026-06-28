@@ -31,10 +31,30 @@ class Encoding(Enum):
         raise ValueError(f"unsupported encoding: {encoding}")
 
 
+class SuccessFail(Enum):
+    Success = "success"
+    Fail = "fail"
+
+
+@dataclass
+class SourceCodeLoadResult:
+    result: SuccessFail
+    error: Exception | None
+
+    @classmethod
+    def success(cls) -> SourceCodeLoadResult:
+        return SourceCodeLoadResult(SuccessFail.Success, None)
+
+    @classmethod
+    def fail(cls, error: Exception) -> SourceCodeLoadResult:
+        return SourceCodeLoadResult(SuccessFail.Fail, error)
+
+
 @dataclass(frozen=True)
-class SrcFile:
+class LoadedSourceFile:
     filepath: str
     code: str
+    load_result: SourceCodeLoadResult
 
     def __post_init__(self):
         # パスの判定は面倒なので、ここでは空の判定のみを行う。それ以外の無効なものは使用時の例外で検知する。

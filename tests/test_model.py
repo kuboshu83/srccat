@@ -8,12 +8,12 @@ class TestSrcFile:
             @pytest.mark.parametrize("filepath", ["", " "])
             def test_invalid_filepath(self, filepath: str):
                 with pytest.raises(ValueError):
-                    srccat.model.SrcFile(filepath, "code")
+                    srccat.model.LoadedSourceFile(filepath, "code", srccat.model.SourceCodeLoadResult.success())
 
             @pytest.mark.parametrize("code", ["", " "])
             def test_invalid_code(self, code: str):
                 with pytest.raises(ValueError):
-                    srccat.model.SrcFile("path", code)
+                    srccat.model.LoadedSourceFile("path", code, srccat.model.SourceCodeLoadResult.success())
 
 
 class TestLanguage:

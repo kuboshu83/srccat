@@ -9,10 +9,17 @@
 言語のバージョン: {{language_version}}　*Noneの場合は未指定
 
 
+##### ソースコードの読み込み結果 #####
+
+{% for file in loaded_source_files %}
+- {{file.filepath}} ・・・ result={{file.load_result.result.value}}, error={{file.load_result.error -}}
+{% endfor %}
+
+
 ##### ソースコード情報 #####
-{% for src in srcs %}
-ソースファイル: {{src.filepath}}
+{% for file in loaded_source_files %}
+ソースファイル: {{file.filepath}}
 コード:```
-{{src.code}}
+{{file.code}}
 ```
 {% endfor %}
