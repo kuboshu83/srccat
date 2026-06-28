@@ -6,13 +6,27 @@ import srccat.filefilter
 
 
 
-class FileCollector:
-    _EXCLUDE_DIR = (".venv", "venv", "__pycache__", ".git")
+class CollectAndFilterFiles:
 
     def __init__(
         self,
-        srcdir: Path,
+        collector: CollectFiles,
         filter: srccat.filefilter.FileFilter,
+    ):
+        self._file_collector = collector
+        self._filename_filter = filter
+    def collect_target_files(self) -> Iterator[Path]:
+        for filepath in self._file_collector.collect_files():
+            if not self._filename_filter.is_target(filepath):
+                continue
+            yield filepath
+
+
+class CollectFiles:
+    _EXCLUDE_DIR = (".venv", "venv", "__pycache__", ".git")
+    def __init__(
+        self,
+        srcdir: Path,
         recursive: bool,
         exclude_dirs: Sequence[str],
         logger: Logger,
@@ -23,13 +37,7 @@ class FileCollector:
         self._logger = logger
         self._exclude_dirs = set([*self._EXCLUDE_DIR, *exclude_dirs])
 
-    def collect_target_files(self) -> Iterator[Path]:
-        for filepath in self._collect_files():
-            if not self._filename_filter.is_target(filepath):
-                continue
-            yield filepath
-
-    def _collect_files(self) -> Iterator[Path]:
+    def collect_files(self) -> Iterator[Path]:
         """
         深さ優先探索を採用
         """

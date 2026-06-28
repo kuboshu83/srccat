@@ -1,8 +1,6 @@
 from pathlib import Path
-from typing import override
 from pytest_mock import MockerFixture
 import srccat.collector
-import srccat.filefilter
 import logging
 
 
@@ -42,15 +40,6 @@ def create_test_dir_structure(root: Path):
         file.write_text("")
 
 
-class FakeFilter(srccat.filefilter.FileFilter):
-    def __init__(self, value: bool):
-        self._value = value
-
-    @override
-    def is_target(self, file: Path) -> bool:
-        return self._value
-
-
 class TestFileCollector:
     class TestCollectTargetFiles:
         class TestNormal:
@@ -60,16 +49,15 @@ class TestFileCollector:
                 # arrange
                 create_test_dir_structure(tmp_path)
                 logger = mocker.Mock(spec=logging.Logger)
-                collector = srccat.collector.FileCollector(
+                collector = srccat.collector.CollectFiles(
                     srcdir=tmp_path,
-                    filter=FakeFilter(True),
                     recursive=False,
                     exclude_dirs=(),
                     logger=logger,
                 )
 
                 # act
-                files = list(collector.collect_target_files())
+                files = list(collector.collect_files())
 
                 # assert
                 expected = [
@@ -84,16 +72,15 @@ class TestFileCollector:
                 # arrange
                 create_test_dir_structure(tmp_path)
                 logger = mocker.Mock(spec=logging.Logger)
-                collector = srccat.collector.FileCollector(
+                collector = srccat.collector.CollectFiles(
                     srcdir=tmp_path,
-                    filter=FakeFilter(True),
                     recursive=True,
                     exclude_dirs=(),
                     logger=logger,
                 )
 
                 # act
-                files = list(collector.collect_target_files())
+                files = list(collector.collect_files())
 
                 # assert
                 expected = [
@@ -104,21 +91,3 @@ class TestFileCollector:
                     tmp_path / "sub00" / "sub20" / "test07.py",
                 ]
                 assert sorted(files) == sorted(expected)
-            
-            def test_filter_reject_all_pattern_return_nothing(self, tmp_path:Path, mocker:MockerFixture):
-                # arrange
-                create_test_dir_structure(tmp_path)
-                logger = mocker.Mock(spec=logging.Logger)
-                collector = srccat.collector.FileCollector(
-                    srcdir=tmp_path,
-                    filter=FakeFilter(False),
-                    recursive=True,
-                    exclude_dirs=(),
-                    logger=logger,
-                )
-
-                # act
-                files = list(collector.collect_target_files())
-
-                # assert
-                assert files == []

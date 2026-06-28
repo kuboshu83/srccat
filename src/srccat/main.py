@@ -8,14 +8,14 @@ import srccat.filefilter
 import logging
 
 
-def run(language: srccat.model.Language, collector: srccat.collector.FileCollector):
+def run(language: srccat.model.Language, collector: srccat.collector.CollectAndFilterFiles):
     text = build_review_document(language, collector)
     print(text)
 
 
 def build_review_document(
     language: srccat.model.Language,
-    collector: srccat.collector.FileCollector,
+    collector: srccat.collector.CollectAndFilterFiles,
 ) -> str:
     srcfiles: list[srccat.model.SrcFile] = []
     for path in collector.collect_target_files():
@@ -34,7 +34,8 @@ def main():
         [srccat.filefilter.FileFilterByFileNamePattern(re.compile(r"^.+\.py$"))]
     )
     logger = logging.getLogger("srccat")
-    file_collector = srccat.collector.FileCollector(srcdir, filters, True, [], logger)
+    file_collector = srccat.collector.CollectFiles(srcdir, True, [], logger)
+    file_collector = srccat.collector.CollectAndFilterFiles(file_collector, filters)
     run(language, file_collector)
 
 
