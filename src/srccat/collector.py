@@ -39,7 +39,7 @@ class DirectoryScanner(FileCollector):
 
     @override
     def collect_files(self) -> Iterator[Path]:
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class DFSDirectoryScanner(DirectoryScanner):
