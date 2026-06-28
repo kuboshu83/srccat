@@ -52,7 +52,7 @@ class FakeFilter(srccat.filter.FileFilter):
 
 
 class TestFileCollector:
-    class Test_CollectFiles:
+    class TestCollectTargetFiles:
         class TestNormal:
             def test_return_files_no_recursive(
                 self, tmp_path: Path, mocker: MockerFixture
@@ -69,7 +69,7 @@ class TestFileCollector:
                 )
 
                 # act
-                files = list(collector._collect_files())  # type: ignore
+                files = list(collector.collect_target_files())
 
                 # assert
                 expected = [
@@ -93,7 +93,7 @@ class TestFileCollector:
                 )
 
                 # act
-                files = list(collector._collect_files())  # type: ignore
+                files = list(collector.collect_target_files())
 
                 # assert
                 expected = [
@@ -104,3 +104,21 @@ class TestFileCollector:
                     tmp_path / "sub00" / "sub20" / "test07.py",
                 ]
                 assert sorted(files) == sorted(expected)
+            
+            def test_filter_reject_all_pattern_return_nothing(self, tmp_path:Path, mocker:MockerFixture):
+                # arrange
+                create_test_dir_structure(tmp_path)
+                logger = mocker.Mock(spec=logging.Logger)
+                collector = srccat.collector.FileCollector(
+                    srcdir=tmp_path,
+                    filter=FakeFilter(False),
+                    recursive=True,
+                    exclude_dirs=(),
+                    logger=logger,
+                )
+
+                # act
+                files = list(collector.collect_target_files())
+
+                # assert
+                assert files == []
