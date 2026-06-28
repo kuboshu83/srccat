@@ -9,7 +9,7 @@ import logging
 
 
 def run(
-    language: srccat.model.Language, collector: srccat.filefilter.CollectAndFilterFiles
+    language: srccat.model.Language, collector: srccat.filefilter.FilteredFileCollector
 ):
     text = build_review_document(language, collector)
     print(text)
@@ -17,7 +17,7 @@ def run(
 
 def build_review_document(
     language: srccat.model.Language,
-    collector: srccat.filefilter.CollectAndFilterFiles,
+    collector: srccat.filefilter.FilteredFileCollector,
 ) -> str:
     srcfiles: list[srccat.model.SrcFile] = []
     for path in collector.collect_target_files():
@@ -36,8 +36,8 @@ def main():
         [srccat.filefilter.FileFilterByFileNamePattern(re.compile(r"^.+\.py$"))]
     )
     logger = logging.getLogger("srccat")
-    file_collector = srccat.collector.CollectFiles(srcdir, True, [], logger)
-    file_collector = srccat.filefilter.CollectAndFilterFiles(file_collector, filters)
+    file_collector = srccat.collector.DFSDirectoryScanner(srcdir, True, [], logger)
+    file_collector = srccat.filefilter.FilteredFileCollector(file_collector, filters)
     run(language, file_collector)
 
 

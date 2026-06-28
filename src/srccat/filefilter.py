@@ -22,7 +22,7 @@ class FileFilterByFileNamePattern(FileFilter):
 
 class AndFileFilters(FileFilter):
     """
-    複数のフィルタを合成するクラス。
+    複数のフィルタをandで合成するクラス。
     """
 
     def __init__(self, filters: Sequence[FileFilter]):
@@ -39,18 +39,20 @@ class AndFileFilters(FileFilter):
         return True
 
 
-class CollectAndFilterFiles:
+class FilteredFileCollector:
 
     def __init__(
         self,
-        collector: srccat.collector.CollectFiles,
-        filter: FileFilter,
+        file_collector: srccat.collector.FileCollector,
+        file_filter: FileFilter,
     ):
-        self._file_collector = collector
-        self._file_filter = filter
+        self._file_collector = file_collector
+        self._file_filter = file_filter
 
     def collect_target_files(self) -> Iterator[Path]:
         for filepath in self._file_collector.collect_files():
             if not self._file_filter.is_target(filepath):
                 continue
             yield filepath
+
+
