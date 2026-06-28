@@ -1,13 +1,13 @@
 from pathlib import Path
 import re
 
-import model
-import render
-import collector
+import srccat.model as model
+import srccat.render as render
+import srccat.collector as collector
 import logging
 
 
-def main(language: model.Language, collector: collector.FileCollector):
+def run(language: model.Language, collector: collector.FileCollector):
     text = build_review_document(language, collector)
     print(text)
 
@@ -24,7 +24,7 @@ def build_review_document(
     return render.render_review_document(language, srcfiles)
 
 
-if __name__ == "__main__":
+def main():
     language = model.Language.from_str("Python")
     srcdir = Path(".")
     filters = collector.AndFileFilters(
@@ -32,4 +32,8 @@ if __name__ == "__main__":
     )
     logger = logging.getLogger("srccat")
     file_collector = collector.FileCollector(srcdir, filters, True, [], logger)
-    main(language, file_collector)
+    run(language, file_collector)
+
+
+if __name__ == "__main__":
+    main()

@@ -11,7 +11,7 @@
 
 ##### ソースコード情報 #####
 {% for src in srcs %}
-ソースファイル: {{src.file}}
+ソースファイル: {{src.filepath}}
 コード:```
 {{src.code}}
 ```

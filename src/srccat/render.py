@@ -2,7 +2,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from collections.abc import Sequence
 
-import model
+import srccat.model as model
 
 _MODULE_DIR = Path(__file__).resolve().parent
 
