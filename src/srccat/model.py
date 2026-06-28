@@ -8,9 +8,10 @@ class SrcFile:
     code: str
 
     def __post_init__(self):
-        if self.filepath == "":
-            raise ValueError("file name is blank")
-        if self.code == "":
+        # パスの判定は面倒なので、ここでは空の判定のみを行う。それ以外の無効なものは使用時の例外で検知する。
+        if self.filepath.strip() == "":
+            raise ValueError("file path is blank")
+        if self.code.strip() == "":
             raise ValueError(f"code is blank: {self.filepath}")
 
 
@@ -37,5 +38,3 @@ class Language(Enum):
             if lang.name == language.upper():
                 return lang
         raise ValueError(f"unsupported language: {language}")
-
-
