@@ -24,16 +24,16 @@ class FileCollector:
         self._exclude_dirs = set([*self._EXCLUDE_DIR, *exclude_dirs])
 
     def collect_target_files(self) -> Iterator[Path]:
-        for filepath in self._collect_files(self._srcdir, self._recursive):
+        for filepath in self._collect_files():
             if not self._filter.is_target(filepath):
                 continue
             yield filepath
 
-    def _collect_files(self, srcdir: Path, recursive: bool) -> Iterator[Path]:
+    def _collect_files(self) -> Iterator[Path]:
         """
         深さ優先探索を採用
         """
-        dir_stack: list[Path] = [srcdir]
+        dir_stack: list[Path] = [self._srcdir]
         while dir_stack:
             p = dir_stack.pop()
             try:
@@ -44,7 +44,7 @@ class FileCollector:
                                 yield Path(entry.path)
                             elif (
                                 entry.is_dir(follow_symlinks=False)
-                                and recursive
+                                and self._recursive
                                 and (entry.name not in self._exclude_dirs)
                             ):
                                 dir_stack.append(Path(entry.path))
