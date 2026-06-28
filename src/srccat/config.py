@@ -107,14 +107,14 @@ class CommandLineConfigGenerator(ConfigGenerator):
         )
         parser.add_argument(
             "--excludes",
-            type=list[str],
+            type=str,
             nargs="+",
             help="scan exclude directories",
             default=[],
         )
         parser.add_argument(
             "--patterns",
-            type=list[str],
+            type=str,
             nargs="+",
             help="collect file name patterns",
             default=[],
