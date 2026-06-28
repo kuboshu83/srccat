@@ -53,15 +53,21 @@ class SourceCodeLoadResult:
 @dataclass(frozen=True)
 class LoadedSourceFile:
     filepath: str
-    code: str
+    code: str | None
     load_result: SourceCodeLoadResult
 
     def __post_init__(self):
         # パスの判定は面倒なので、ここでは空の判定のみを行う。それ以外の無効なものは使用時の例外で検知する。
         if self.filepath.strip() == "":
             raise ValueError("file path is blank")
-        if self.code.strip() == "":
-            raise ValueError(f"code is blank: {self.filepath}")
+
+    @classmethod
+    def success(cls, filepath: str, code: str) -> LoadedSourceFile:
+        return LoadedSourceFile(filepath, code, SourceCodeLoadResult.success())
+
+    @classmethod
+    def fail(cls, filepath: str, error: Exception) -> LoadedSourceFile:
+        return LoadedSourceFile(filepath, None, SourceCodeLoadResult.fail(error))
 
 
 @dataclass(frozen=True)
