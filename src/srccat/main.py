@@ -36,7 +36,11 @@ def main():
         [srccat.filefilter.FileFilterByFileNamePattern(re.compile(r"^.+\.py$"))]
     )
     logger = logging.getLogger("srccat")
-    file_collector = srccat.collector.DFSDirectoryScanner(srcdir, True, [], logger)
+    scan_directory_policy = srccat.collector.AndDirectoryScanPolicies((
+        srccat.collector.RecursiveScanPolicy(True),
+        srccat.collector.DirectoryNameScanPolicy(()),
+    ))
+    file_collector = srccat.collector.DFSDirectoryScanner(srcdir, scan_directory_policy, logger)
     file_collector = srccat.filefilter.FilteredFileCollector(file_collector, filters)
     run(language, file_collector)
 

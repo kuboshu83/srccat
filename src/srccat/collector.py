@@ -6,6 +6,66 @@ from typing import override
 import os
 
 
+class DirectoryScanPolicy(ABC):
+    """
+    ディレクトリを検索する際の検索対象かどうかの判定基準
+    """
+
+    @abstractmethod
+    def is_scantarget(self, dirpath: Path) -> bool:
+        pass
+
+
+class RecursiveScanPolicy(DirectoryScanPolicy):
+    """
+    再起的にディレクトリを検索するかどうかの判定条件
+    """
+
+    def __init__(self, scan_recursive: bool):
+        self._scan_recursive = scan_recursive
+
+    @override
+    def is_scantarget(self, dirpath: Path) -> bool:
+        return self._scan_recursive
+
+
+class DirectoryNameScanPolicy(DirectoryScanPolicy):
+    """
+    ディレクトリを検索するかをディレクトリ名から判定する条件
+    """
+
+    _EXCLUDE_DIR_NAMES = (".venv", "venv", "__pycache__", ".git")
+
+    def __init__(self, exclude_dir_names: Sequence[str]):
+        self._exclude_dir_names = [*self._EXCLUDE_DIR_NAMES, *exclude_dir_names]
+
+    @override
+    def is_scantarget(self, dirpath: Path) -> bool:
+        return dirpath.name not in self._exclude_dir_names
+
+
+class AndDirectoryScanPolicies(DirectoryScanPolicy):
+    """
+    登録されたディレクトリ検索条件が全て満たされているかを判定するための条件
+    """
+
+    def __init__(self, scan_policies: Sequence[DirectoryScanPolicy]):
+        self._scan_policies = tuple(scan_policies)
+
+    @override
+    def is_scantarget(self, dirpath: Path) -> bool:
+        """
+        条件が未登録の場合は常にFalseを返します。
+        """
+        if self._scan_policies == ():
+            return False
+
+        for policy in self._scan_policies:
+            if not policy.is_scantarget(dirpath):
+                return False
+        return True
+
+
 class FileCollector(ABC):
     """
     ファイル収集するAPI
@@ -26,16 +86,14 @@ class DirectoryScanner(FileCollector):
     def __init__(
         self,
         scan_root_dir: Path,
-        scan_recursive: bool,
-        exclude_dir_names: Sequence[str],
+        directory_scan_policy: DirectoryScanPolicy,
     ):
         if not scan_root_dir.is_dir():
             raise ValueError(
                 f"scan tmp_path directory is not directory: {scan_root_dir}"
             )
         self._scan_root_dir = scan_root_dir
-        self._scan_recursive = scan_recursive
-        self._exclude_dir_names = [*exclude_dir_names, *self._EXCLUDE_DIR_NAMES]
+        self._directory_scan_policy = directory_scan_policy
 
 
 class DFSDirectoryScanner(DirectoryScanner):
@@ -46,11 +104,10 @@ class DFSDirectoryScanner(DirectoryScanner):
     def __init__(
         self,
         scan_root_dir: Path,
-        scan_recursive: bool,
-        exclude_dir_names: Sequence[str],
+        directory_scan_policy: DirectoryScanPolicy,
         logger: Logger,
     ):
-        super().__init__(scan_root_dir, scan_recursive, exclude_dir_names)
+        super().__init__(scan_root_dir, directory_scan_policy)
         self._logger = logger
 
     @override
@@ -58,9 +115,6 @@ class DFSDirectoryScanner(DirectoryScanner):
         """
         深さ優先探索を採用
         """
-        if self._scan_root_dir.name in self._exclude_dir_names:
-            return
-
         dir_stack: list[Path] = [self._scan_root_dir]
         while dir_stack:
             p = dir_stack.pop()
@@ -70,12 +124,10 @@ class DFSDirectoryScanner(DirectoryScanner):
                         try:
                             if entry.is_file(follow_symlinks=False):
                                 yield Path(entry.path)
-                            elif (
-                                entry.is_dir(follow_symlinks=False)
-                                and self._scan_recursive
-                                and (entry.name not in self._exclude_dir_names)
-                            ):
-                                dir_stack.append(Path(entry.path))
+                            elif entry.is_dir(follow_symlinks=False):
+                                dir = Path(entry)
+                                if self._directory_scan_policy.is_scantarget(dir):
+                                    dir_stack.append(dir)
                         except FileNotFoundError:
                             self._logger.info(
                                 "skip file scan: file not found: %s", entry.path

@@ -25,8 +25,8 @@ def create_test_dir_structure(root: Path):
         |- test09.py
     """
     files = (
-        root / "test01",
-        root / "test02",
+        root / "test01.py",
+        root / "test02.py",
         root / ".venv" / "test03.py",
         root / "sub00" / "test04.py",
         root / "sub00" / "venv" / "test05.py",
@@ -49,10 +49,12 @@ class TestFileCollector:
                 # arrange
                 create_test_dir_structure(tmp_path)
                 logger = mocker.Mock(spec=logging.Logger)
+                policy = srccat.collector.AndDirectoryScanPolicies(
+                    (srccat.collector.RecursiveScanPolicy(False),)
+                )
                 collector = srccat.collector.DFSDirectoryScanner(
                     scan_root_dir=tmp_path,
-                    scan_recursive=False,
-                    exclude_dir_names=(),
+                    directory_scan_policy=policy,
                     logger=logger,
                 )
 
@@ -61,8 +63,8 @@ class TestFileCollector:
 
                 # assert
                 expected = [
-                    tmp_path / "test01",
-                    tmp_path / "test02",
+                    tmp_path / "test01.py",
+                    tmp_path / "test02.py",
                 ]
                 assert sorted(files) == sorted(expected)
 
@@ -72,10 +74,12 @@ class TestFileCollector:
                 # arrange
                 create_test_dir_structure(tmp_path)
                 logger = mocker.Mock(spec=logging.Logger)
+                policy = srccat.collector.AndDirectoryScanPolicies(
+                    (srccat.collector.RecursiveScanPolicy(True),)
+                )
                 collector = srccat.collector.DFSDirectoryScanner(
                     scan_root_dir=tmp_path,
-                    scan_recursive=True,
-                    exclude_dir_names=(),
+                    directory_scan_policy=policy,
                     logger=logger,
                 )
 
@@ -84,10 +88,14 @@ class TestFileCollector:
 
                 # assert
                 expected = [
-                    tmp_path / "test01",
-                    tmp_path / "test02",
+                    tmp_path / "test01.py",
+                    tmp_path / "test02.py",
+                    tmp_path / ".venv" / "test03.py",
                     tmp_path / "sub00" / "test04.py",
+                    tmp_path / "sub00" / "venv" / "test05.py",
                     tmp_path / "sub00" / "sub10" / "test06.py",
                     tmp_path / "sub00" / "sub20" / "test07.py",
+                    tmp_path / "__pycache__" / "test08.py",
+                    tmp_path / ".git" / "test09.py",
                 ]
                 assert sorted(files) == sorted(expected)
