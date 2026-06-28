@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 import re
 from pathlib import Path
-from typing import Sequence, override
+from typing import Sequence, override, Iterator
+import srccat.collector
+
 
 class FileFilter(ABC):
     @abstractmethod
@@ -22,6 +24,7 @@ class AndFileFilters(FileFilter):
     """
     複数のフィルタを合成するクラス。
     """
+
     def __init__(self, filters: Sequence[FileFilter]):
         self._filters = filters
 
@@ -35,3 +38,19 @@ class AndFileFilters(FileFilter):
                 return False
         return True
 
+
+class CollectAndFilterFiles:
+
+    def __init__(
+        self,
+        collector: srccat.collector.CollectFiles,
+        filter: FileFilter,
+    ):
+        self._file_collector = collector
+        self._filename_filter = filter
+
+    def collect_target_files(self) -> Iterator[Path]:
+        for filepath in self._file_collector.collect_files():
+            if not self._filename_filter.is_target(filepath):
+                continue
+            yield filepath

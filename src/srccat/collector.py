@@ -2,24 +2,6 @@ from pathlib import Path
 from collections.abc import Iterator, Sequence
 from logging import Logger
 import os
-import srccat.filefilter
-
-
-class CollectAndFilterFiles:
-
-    def __init__(
-        self,
-        collector: CollectFiles,
-        filter: srccat.filefilter.FileFilter,
-    ):
-        self._file_collector = collector
-        self._filename_filter = filter
-
-    def collect_target_files(self) -> Iterator[Path]:
-        for filepath in self._file_collector.collect_files():
-            if not self._filename_filter.is_target(filepath):
-                continue
-            yield filepath
 
 
 class CollectFiles:
