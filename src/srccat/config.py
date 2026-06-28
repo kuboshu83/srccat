@@ -93,7 +93,7 @@ class CommandLineConfigGenerator(ConfigGenerator):
         )
 
         parser.add_argument(
-            "--recursive",
+            "--norecursive",
             action="store_false",
             help="enable recursive directory scan mode",
         )
@@ -122,9 +122,11 @@ class CommandLineConfigGenerator(ConfigGenerator):
 
         args = parser.parse_args()
 
+        recursive = not args.norecursive
+
         return ApplicationConfig.convert_from(
             programming_language=args.language,
-            scan_directory_recursive=args.recursive,
+            scan_directory_recursive=recursive,
             scan_root_directory=args.directory,
             scan_exclude_directory_names=args.excludes,
             source_file_encoding=args.encoding,
