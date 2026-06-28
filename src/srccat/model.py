@@ -1,5 +1,34 @@
 from dataclasses import dataclass
 from enum import Enum
+import re
+
+
+@dataclass(frozen=True)
+class _EncodingInfo:
+    id: str
+    display_name: str
+    codec: str
+
+
+class Encoding(Enum):
+    UTF8 = _EncodingInfo("utf8", "utf8", "utf-8")
+    UTF16 = _EncodingInfo("utf16", "utf16", "utf-16")
+    SHIFTJIS = _EncodingInfo("shiftjis", "shift-jis", "shift_jis")
+
+    @property
+    def display_name(self) -> str:
+        return self.value.display_name
+
+    @property
+    def codec(self) -> str:
+        return self.value.codec
+
+    @classmethod
+    def from_str(cls, encoding: str) -> Encoding:
+        for encode in cls:
+            if encode.value.id == encoding.lower():
+                return encode
+        raise ValueError(f"unsupported encoding: {encoding}")
 
 
 @dataclass(frozen=True)
@@ -19,10 +48,11 @@ class SrcFile:
 class _LangInfo:
     display_name: str
     template_filename: str
+    filename_pattern: re.Pattern[str]
 
 
 class Language(Enum):
-    PYTHON = _LangInfo("Python", "review_py.template")
+    PYTHON = _LangInfo("Python", "review_py.template", re.compile(r"^.+\.py$"))
 
     @property
     def display_name(self) -> str:
@@ -31,6 +61,10 @@ class Language(Enum):
     @property
     def template_filename(self) -> str:
         return self.value.template_filename
+
+    @property
+    def filename_pattern(self) -> re.Pattern[str]:
+        return self.value.filename_pattern
 
     @classmethod
     def from_str(cls, language: str) -> Language:

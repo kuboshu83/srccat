@@ -20,6 +20,7 @@ class DisableScanDirectoryPolicy(DirectoryScanPolicy):
     """
     全てのディレクトリの検索を無効にしたい場合のポリシー
     """
+
     @override
     def is_scantarget(self, dirpath: Path) -> bool:
         """
@@ -28,7 +29,7 @@ class DisableScanDirectoryPolicy(DirectoryScanPolicy):
         return False
 
 
-class DirectoryNameScanPolicy(DirectoryScanPolicy):
+class ExcludeDirectoryByNamePolicy(DirectoryScanPolicy):
     """
     ディレクトリを検索するかをディレクトリ名から判定する条件
     """
@@ -60,6 +61,16 @@ class AndDirectoryScanPolicies(DirectoryScanPolicy):
             if not policy.is_scantarget(dirpath):
                 return False
         return True
+
+
+def create_and_directory_scan_policy(
+    recursive: bool, exclude_dirnames: Sequence[str]
+) -> AndDirectoryScanPolicies:
+    policies: list[DirectoryScanPolicy] = []
+    if not recursive:
+        policies.append(DisableScanDirectoryPolicy())
+    policies.append(ExcludeDirectoryByNamePolicy(exclude_dirnames))
+    return AndDirectoryScanPolicies(policies)
 
 
 class FileCollector(ABC):

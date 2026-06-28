@@ -56,3 +56,10 @@ class FilteredFileCollector:
             yield filepath
 
 
+def create_and_file_filters(filename_patterns: tuple[re.Pattern[str],...]) -> AndFileFilters:
+    filters: list[FileFilter] = []
+
+    for pattern in filename_patterns:
+        filters.append(FileFilterByFileNamePattern(pattern))
+
+    return AndFileFilters(filters)
