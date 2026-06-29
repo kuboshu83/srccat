@@ -7,15 +7,14 @@ import srccat.errors as errors
 
 @dataclass(frozen=True)
 class _EncodingInfo:
-    id: str
     display_name: str
     codec: str
 
 
 class Encoding(Enum):
-    UTF8 = _EncodingInfo("utf8", "utf8", "utf-8")
-    UTF16 = _EncodingInfo("utf16", "utf16", "utf-16")
-    SHIFTJIS = _EncodingInfo("shiftjis", "shift-jis", "shift_jis")
+    UTF8 = _EncodingInfo("utf8", "utf-8")
+    UTF16 = _EncodingInfo("utf16", "utf-16")
+    SHIFTJIS = _EncodingInfo("shift-jis", "shift_jis")
 
     @property
     def display_name(self) -> str:
@@ -28,7 +27,7 @@ class Encoding(Enum):
     @classmethod
     def from_str(cls, encoding: str) -> Encoding:
         for encode in cls:
-            if encode.value.id == encoding.lower():
+            if encode.name == encoding.upper():
                 return encode
         raise ValueError(f"unsupported encoding: {encoding}")
 
