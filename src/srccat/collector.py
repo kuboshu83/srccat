@@ -55,7 +55,7 @@ class DirectoryRejectorOrCondition(DirectoryRejector):
 
     @override
     def is_reject_target(self, dir_path: Path) -> bool:
-        # 登録フィルタがない場合は、そもそもフィルタリングしないことと同意なので常にTrueを返す
+        # 登録Rejectorがない場合は、そもそもRejectしないことと同意なので常にFalseを返す
         if len(self._filters) == 0:
             return False
 
