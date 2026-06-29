@@ -36,8 +36,8 @@ def main():
     config = srccat.config.CommandLineConfigGenerator().get_config()
     language = config.language
     scan_root_dir = config.scan_root_directory
-    filters = srccat.filefilter.create_and_file_filters(
-        filename_patterns=config.source_file_name_patterns
+    filters = srccat.filefilter.create_file_name_filter(
+        file_name_patterns=config.source_file_name_patterns
         + (language.filename_pattern,)
     )
     logger = logging.getLogger("srccat")
