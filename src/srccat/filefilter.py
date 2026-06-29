@@ -11,7 +11,7 @@ class FileFilter(ABC):
         pass
 
 
-class FileFilterByFileNamePattern(FileFilter):
+class FileNameFilter(FileFilter):
     def __init__(self, pattern: re.Pattern[str]):
         self._pattern = pattern
 
@@ -60,6 +60,6 @@ def create_and_file_filters(filename_patterns: tuple[re.Pattern[str],...]) -> An
     filters: list[FileFilter] = []
 
     for pattern in filename_patterns:
-        filters.append(FileFilterByFileNamePattern(pattern))
+        filters.append(FileNameFilter(pattern))
 
     return AndFileFilters(filters)

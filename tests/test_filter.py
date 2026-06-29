@@ -12,7 +12,7 @@ class TestFileFilterByFileNamePattern:
             def test_return_true(self, filename: Path):
                 # arrange
                 pattern = re.compile(r"^[a-zA-Z]+\.py$")
-                filter = srccat.filefilter.FileFilterByFileNamePattern(pattern)
+                filter = srccat.filefilter.FileNameFilter(pattern)
 
                 # act
                 is_target = filter.is_target(filename)
@@ -34,7 +34,7 @@ class TestFileFilterByFileNamePattern:
             def test_return_false(self, filename: Path):
                 # arrange
                 pattern = re.compile(r"^[a-zA-Z]+\.py$")
-                filter = srccat.filefilter.FileFilterByFileNamePattern(pattern)
+                filter = srccat.filefilter.FileNameFilter(pattern)
 
                 # act
                 is_target = filter.is_target(filename)
