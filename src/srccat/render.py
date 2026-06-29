@@ -19,5 +19,7 @@ def render_review_document(
 ) -> str:
     template = _env.get_template(language.template_filename)
     return template.render(
-        language=language.display_name, language_version=language_version, loaded_source_files=loaded_source_files
+        language=language.display_name,
+        language_version=language_version,
+        loaded_source_files=loaded_source_files,
     )
