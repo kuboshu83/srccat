@@ -14,7 +14,7 @@ _env = Environment(
 
 def render_review_document(
     language: srccat.model.Language,
-    loaded_source_files: Sequence[srccat.model.LoadedSourceFile],
+    loaded_source_files: Sequence[srccat.model.LoadedSourceCode],
     language_version: str | None = None,
 ) -> str:
     template = _env.get_template(language.template_filename)

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
-from abc import ABC, abstractmethod
-from typing import override
 import re
+
+import srccat.errors as errors
 
 
 @dataclass(frozen=True)
@@ -33,97 +33,72 @@ class Encoding(Enum):
         raise ValueError(f"unsupported encoding: {encoding}")
 
 
-class SuccessFail(Enum):
+class Result(Enum):
     Success = "success"
     Fail = "fail"
 
 
-class SourceCodeLoadResult(ABC):
+@dataclass(frozen=True)
+class LoadResult:
     """
-    SourceCodeの読み込みの成否を表すクラス
+    インスタンスの生成にはコンストラクタではなくsuccess/failメソッドを使用してください。
     """
 
-    @abstractmethod
-    def result(self) -> SuccessFail:
-        pass
+    result: Result
+    exception: Exception | None
 
-    @abstractmethod
+    def __post_init__(self):
+        if self.result == Result.Success and self.exception is not None:
+            raise errors.InvalidStatusError("result is success with exception")
+
+        if self.result == Result.Success and self.exception is None:
+            raise errors.InvalidStatusError("result is fail without exception")
+
+    @property
+    def is_success(self) -> bool:
+        return self.result == Result.Success
+
+    @classmethod
+    def success(cls) -> LoadResult:
+        return LoadResult(Result.Success, None)
+
+    @classmethod
+    def fail(cls, exception: Exception) -> LoadResult:
+        return LoadResult(Result.Fail, exception)
+
+
+@dataclass(frozen=True)
+class LoadedSourceCode:
+    """
+    インスタンスの生成にはコンストラクタではなくwith_success/with_failメソッドを使用してください。
+    """
+
+    file_path: str
+    code: str | None
+    load_result: LoadResult
+
+    def __post_init__(self):
+        if self.load_result.is_success and self.code is None:
+            raise errors.InvalidStatusError("load success but code is None")
+
+        if not self.load_result.is_success and self.code is not None:
+            raise errors.InvalidStatusError("load is faile but code is not None")
+
+    @property
+    def is_load_success(self) -> bool:
+        return self.load_result.is_success
+
+    @property
     def error(self) -> Exception | None:
-        pass
+        return self.load_result.exception
 
+    @classmethod
+    def with_success(cls, file_path: str, code: str) -> LoadedSourceCode:
+        return LoadedSourceCode(file_path, code, LoadResult.success())
 
-@dataclass(frozen=True)
-class _SourceCodeLoadSuccess(SourceCodeLoadResult):
-    @override
-    def result(self) -> SuccessFail:
-        return SuccessFail.Success
-
-    @override
-    def error(self) -> Exception | None:
-        return None
-
-
-@dataclass(frozen=True)
-class _SourceCodeLoadFail(SourceCodeLoadResult):
-    load_error: Exception
-
-    @override
-    def result(self) -> SuccessFail:
-        return SuccessFail.Fail
-
-    @override
-    def error(self) -> Exception | None:
-        return self.load_error
-
-
-class LoadedSourceFile(ABC):
-    @abstractmethod
-    def filepath(self) -> str:
-        pass
-
-    @abstractmethod
-    def code(self) -> str | None:
-        pass
-
-    @abstractmethod
-    def result(self) -> SourceCodeLoadResult:
-        pass
-
-
-@dataclass(frozen=True)
-class SuccessLoadedSourceFile(LoadedSourceFile):
-    loaded_filepath: str
-    loaded_code: str
-
-    @override
-    def filepath(self) -> str:
-        return self.loaded_filepath
-
-    @override
-    def code(self) -> str | None:
-        return self.loaded_code
-
-    @override
-    def result(self) -> SourceCodeLoadResult:
-        return _SourceCodeLoadSuccess()
-
-
-@dataclass(frozen=True)
-class FailLoadedSourceFile(LoadedSourceFile):
-    loaded_filepath: str
-    error: Exception
-
-    @override
-    def filepath(self) -> str:
-        return self.loaded_filepath
-
-    @override
-    def code(self) -> str | None:
-        return None
-
-    @override
-    def result(self) -> SourceCodeLoadResult:
-        return _SourceCodeLoadFail(self.error)
+    @classmethod
+    def with_fail(cls, file_path: str, exception: Exception) -> LoadedSourceCode:
+        return LoadedSourceCode(file_path, None, LoadResult.fail(exception))
 
 
 @dataclass(frozen=True)
@@ -135,6 +110,10 @@ class _LangInfo:
 
 class Language(Enum):
     PYTHON = _LangInfo("Python", "review_py.template", re.compile(r"^.+\.py$"))
+    CSHARP = _LangInfo("C#", "review_cs.template", re.compile(r"^.+\.cs$"))
+    VBNET = _LangInfo("VB.NET", "review_vb.template", re.compile(r"^.+\.vb$"))
+    JAVA = _LangInfo("Java", "review_java.template", re.compile(r"^.+\.java$"))
+    KOTLIN = _LangInfo("Kotlin", "review_kt.template", re.compile(r"^.+\.kt$"))
 
     @property
     def display_name(self) -> str:

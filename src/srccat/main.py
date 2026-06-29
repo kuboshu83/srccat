@@ -20,15 +20,15 @@ def build_review_document(
     collector: srccat.filefilter.FilteredFileCollector,
     encoding: srccat.model.Encoding,
 ) -> str:
-    loaded_source_files: list[srccat.model.LoadedSourceFile] = []
+    loaded_source_files: list[srccat.model.LoadedSourceCode] = []
     for path in collector.collect_target_files():
         try:
             code_body = path.read_text(encoding=encoding.codec, errors="strict")
             loaded_source_files.append(
-                srccat.model.SuccessLoadedSourceFile(str(path), code_body)
+                srccat.model.LoadedSourceCode.with_success(str(path), code_body)
             )
         except (FileNotFoundError, PermissionError, UnicodeDecodeError, OSError) as ex:
-            loaded_source_files.append(srccat.model.FailLoadedSourceFile(str(path), ex))
+            loaded_source_files.append(srccat.model.LoadedSourceCode.with_fail(str(path), ex))
     return srccat.render.render_review_document(language, loaded_source_files)
 
 
