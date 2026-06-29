@@ -12,14 +12,14 @@
 ##### ソースコードの読み込み結果 #####
 
 {% for file in loaded_source_files %}
-- {{file.filepath}} ・・・ result={{file.load_result.result.value}}, error={{file.load_result.error -}}
+- {{file.filepath()}} ・・・ result={{file.result().result().value}}, error={{file.result().error() -}}
 {% endfor %}
 
 
 ##### ソースコード情報 #####
 {% for file in loaded_source_files %}
-ソースファイル: {{file.filepath}}
+ソースファイル: {{file.filepath()}}
 コード:```
-{{file.code}}
+{{file.code()}}
 ```
 {% endfor %}

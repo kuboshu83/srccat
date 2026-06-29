@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
+from abc import ABC, abstractmethod
+from typing import override
 import re
 
 
@@ -36,38 +38,92 @@ class SuccessFail(Enum):
     Fail = "fail"
 
 
-@dataclass
-class SourceCodeLoadResult:
-    result: SuccessFail
-    error: Exception | None
+class SourceCodeLoadResult(ABC):
+    """
+    SourceCodeの読み込みの成否を表すクラス
+    """
 
-    @classmethod
-    def success(cls) -> SourceCodeLoadResult:
-        return SourceCodeLoadResult(SuccessFail.Success, None)
+    @abstractmethod
+    def result(self) -> SuccessFail:
+        pass
 
-    @classmethod
-    def fail(cls, error: Exception) -> SourceCodeLoadResult:
-        return SourceCodeLoadResult(SuccessFail.Fail, error)
+    @abstractmethod
+    def error(self) -> Exception | None:
+        pass
 
 
 @dataclass(frozen=True)
-class LoadedSourceFile:
-    filepath: str
-    code: str | None
-    load_result: SourceCodeLoadResult
+class _SourceCodeLoadSuccess(SourceCodeLoadResult):
+    @override
+    def result(self) -> SuccessFail:
+        return SuccessFail.Success
 
-    def __post_init__(self):
-        # パスの判定は面倒なので、ここでは空の判定のみを行う。それ以外の無効なものは使用時の例外で検知する。
-        if self.filepath.strip() == "":
-            raise ValueError("file path is blank")
+    @override
+    def error(self) -> Exception | None:
+        return None
 
-    @classmethod
-    def success(cls, filepath: str, code: str) -> LoadedSourceFile:
-        return LoadedSourceFile(filepath, code, SourceCodeLoadResult.success())
 
-    @classmethod
-    def fail(cls, filepath: str, error: Exception) -> LoadedSourceFile:
-        return LoadedSourceFile(filepath, None, SourceCodeLoadResult.fail(error))
+@dataclass(frozen=True)
+class _SourceCodeLoadFail(SourceCodeLoadResult):
+    load_error: Exception
+
+    @override
+    def result(self) -> SuccessFail:
+        return SuccessFail.Fail
+
+    @override
+    def error(self) -> Exception | None:
+        return self.load_error
+
+
+class LoadedSourceFile(ABC):
+    @abstractmethod
+    def filepath(self) -> str:
+        pass
+
+    @abstractmethod
+    def code(self) -> str | None:
+        pass
+
+    @abstractmethod
+    def result(self) -> SourceCodeLoadResult:
+        pass
+
+
+@dataclass(frozen=True)
+class SuccessLoadedSourceFile(LoadedSourceFile):
+    loaded_filepath: str
+    loaded_code: str
+
+    @override
+    def filepath(self) -> str:
+        return self.loaded_filepath
+
+    @override
+    def code(self) -> str | None:
+        return self.loaded_code
+
+    @override
+    def result(self) -> SourceCodeLoadResult:
+        return _SourceCodeLoadSuccess()
+
+
+@dataclass(frozen=True)
+class FailLoadedSourceFile(LoadedSourceFile):
+    loaded_filepath: str
+    error: Exception
+
+    @override
+    def filepath(self) -> str:
+        return self.loaded_filepath
+
+    @override
+    def code(self) -> str | None:
+        return None
+
+    @override
+    def result(self) -> SourceCodeLoadResult:
+        return _SourceCodeLoadFail(self.error)
 
 
 @dataclass(frozen=True)

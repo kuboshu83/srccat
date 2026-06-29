@@ -25,12 +25,10 @@ def build_review_document(
         try:
             code_body = path.read_text(encoding=encoding.codec, errors="strict")
             loaded_source_files.append(
-                srccat.model.LoadedSourceFile.success(str(path), code_body)
+                srccat.model.SuccessLoadedSourceFile(str(path), code_body)
             )
         except (FileNotFoundError, PermissionError, UnicodeDecodeError, OSError) as ex:
-            loaded_source_files.append(
-                srccat.model.LoadedSourceFile.fail(str(path), ex)
-            )
+            loaded_source_files.append(srccat.model.FailLoadedSourceFile(str(path), ex))
     return srccat.render.render_review_document(language, loaded_source_files)
 
 
