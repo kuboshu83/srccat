@@ -20,7 +20,7 @@ class FileNameFilter(FileFilter):
         return self._pattern.fullmatch(file.name) is not None
 
 
-class AndFileFilters(FileFilter):
+class FileFilterAndCondition(FileFilter):
     """
     複数のフィルタをandで合成するクラス。
     """
@@ -30,9 +30,6 @@ class AndFileFilters(FileFilter):
 
     @override
     def is_target(self, file: Path) -> bool:
-        """
-        フィルタが１つも登録されていない場合は常にTrueを返します
-        """
         for filter in self._filters:
             if not filter.is_target(file):
                 return False
@@ -56,10 +53,10 @@ class FilteredFileCollector:
             yield filepath
 
 
-def create_and_file_filters(filename_patterns: tuple[re.Pattern[str],...]) -> AndFileFilters:
+def create_and_file_filters(filename_patterns: tuple[re.Pattern[str],...]) -> FileFilterAndCondition:
     filters: list[FileFilter] = []
 
     for pattern in filename_patterns:
         filters.append(FileNameFilter(pattern))
 
-    return AndFileFilters(filters)
+    return FileFilterAndCondition(filters)

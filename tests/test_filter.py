@@ -57,7 +57,7 @@ class TestAndFilters:
         class TestNormal:
             def test_empty_filter_return_true(self):
                 # arrange
-                filters = srccat.filefilter.AndFileFilters(())
+                filters = srccat.filefilter.FileFilterAndCondition(())
 
                 # act
                 is_target = filters.is_target(Path(""))
@@ -67,7 +67,7 @@ class TestAndFilters:
 
             def test_return_true(self):
                 # arrange
-                filters = srccat.filefilter.AndFileFilters(
+                filters = srccat.filefilter.FileFilterAndCondition(
                     (FakeFilter(True), FakeFilter(True))
                 )
 
@@ -79,7 +79,7 @@ class TestAndFilters:
 
             def test_return_false(self):
                 # arrange
-                filters = srccat.filefilter.AndFileFilters(
+                filters = srccat.filefilter.FileFilterAndCondition(
                     (FakeFilter(True), FakeFilter(False))
                 )
 
