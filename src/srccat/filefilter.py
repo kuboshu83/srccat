@@ -47,7 +47,7 @@ class FilteredFileCollector:
 
     def __init__(
         self,
-        file_collector: srccat.collector.FileCollector,
+        file_collector: srccat.collector.DirectoryScanner,
         file_filter: FileFilter,
     ):
         self._file_collector = file_collector

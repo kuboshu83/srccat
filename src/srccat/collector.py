@@ -84,17 +84,7 @@ def create_scan_directory_reject_filter(
     return DirectoryRejectorOrCondition(directory_rejector)
 
 
-class FileCollector(ABC):
-    """
-    ファイル収集するAPI
-    """
-
-    @abstractmethod
-    def collect_files(self) -> Iterator[Path]:
-        pass
-
-
-class DirectoryScanner(FileCollector):
+class DirectoryScanner(ABC):
     """
     ディレクトリを検索してファイルを収集するAPI
     """
@@ -110,6 +100,10 @@ class DirectoryScanner(FileCollector):
             )
         self._scan_root_dir = scan_root_dir
         self._directory_rejector = directory_rejector
+
+    @abstractmethod
+    def collect_files(self) -> Iterator[Path]:
+        pass
 
 
 class DFSDirectoryScanner(DirectoryScanner):
@@ -142,7 +136,9 @@ class DFSDirectoryScanner(DirectoryScanner):
                                 yield Path(entry.path)
                             elif entry.is_dir(follow_symlinks=False):
                                 dir_path = Path(entry.path)
-                                if not self._directory_rejector.is_reject_target(dir_path):
+                                if not self._directory_rejector.is_reject_target(
+                                    dir_path
+                                ):
                                     dir_stack.append(dir_path)
                         except FileNotFoundError:
                             self._logger.info(
