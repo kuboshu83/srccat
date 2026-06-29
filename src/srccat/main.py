@@ -28,7 +28,9 @@ def build_review_document(
                 srccat.model.LoadedSourceCode.with_success(str(path), code_body)
             )
         except (FileNotFoundError, PermissionError, UnicodeDecodeError, OSError) as ex:
-            loaded_source_files.append(srccat.model.LoadedSourceCode.with_fail(str(path), ex))
+            loaded_source_files.append(
+                srccat.model.LoadedSourceCode.with_fail(str(path), ex)
+            )
     return srccat.render.render_review_document(language, loaded_source_files)
 
 
@@ -41,13 +43,13 @@ def main():
         + (language.filename_pattern,)
     )
     logger = logging.getLogger("srccat")
-    directory_scan_policy = srccat.collector.create_and_directory_scan_policy(
-        recursive=config.scan_directory_recursive,
-        exclude_dirnames=config.scan_exclude_directory_names,
+    scan_directory_filter = srccat.collector.create_scan_directory_reject_filter(
+        is_recursive=config.scan_directory_recursive,
+        additional_reject_dir_name_patterns=config.reject_dir_name_patterns,
     )
     file_collector = srccat.collector.DFSDirectoryScanner(
         scan_root_dir=scan_root_dir,
-        directory_scan_policy=directory_scan_policy,
+        directory_rejector=scan_directory_filter,
         logger=logger,
     )
     file_collector = srccat.filefilter.FilteredFileCollector(file_collector, filters)

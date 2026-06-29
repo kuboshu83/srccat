@@ -49,12 +49,10 @@ class TestFileCollector:
                 # arrange
                 create_test_dir_structure(tmp_path)
                 logger = mocker.Mock(spec=logging.Logger)
-                policy = srccat.collector.AndDirectoryScanPolicies(
-                    (srccat.collector.DisableScanDirectoryPolicy(),)
-                )
+                rejector = srccat.collector.create_scan_directory_reject_filter(False, [])
                 collector = srccat.collector.DFSDirectoryScanner(
                     scan_root_dir=tmp_path,
-                    directory_scan_policy=policy,
+                    directory_rejector=rejector,
                     logger=logger,
                 )
 
@@ -74,10 +72,10 @@ class TestFileCollector:
                 # arrange
                 create_test_dir_structure(tmp_path)
                 logger = mocker.Mock(spec=logging.Logger)
-                policy = srccat.collector.AndDirectoryScanPolicies(())
+                policy = srccat.collector.create_scan_directory_reject_filter(True, [])
                 collector = srccat.collector.DFSDirectoryScanner(
                     scan_root_dir=tmp_path,
-                    directory_scan_policy=policy,
+                    directory_rejector=policy,
                     logger=logger,
                 )
 
@@ -88,12 +86,8 @@ class TestFileCollector:
                 expected = [
                     tmp_path / "test01.py",
                     tmp_path / "test02.py",
-                    tmp_path / ".venv" / "test03.py",
                     tmp_path / "sub00" / "test04.py",
-                    tmp_path / "sub00" / "venv" / "test05.py",
                     tmp_path / "sub00" / "sub10" / "test06.py",
                     tmp_path / "sub00" / "sub20" / "test07.py",
-                    tmp_path / "__pycache__" / "test08.py",
-                    tmp_path / ".git" / "test09.py",
                 ]
                 assert sorted(files) == sorted(expected)

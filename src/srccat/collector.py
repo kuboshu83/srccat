@@ -3,74 +3,85 @@ from collections.abc import Iterator, Sequence
 from logging import Logger
 from abc import ABC, abstractmethod
 from typing import override
+import re
 import os
 
+# 常に検索から除外したいディレクトリはここに追加してください
+_DEFAULT_EXCLUDE_DIR_NAME_PATTERNS = (
+    re.compile(r"^\.venv$"),
+    re.compile(r"^venv$"),
+    re.compile(r"^__pycache__$"),
+    re.compile(r"^\.git$"),
+)
 
-class DirectoryScanPolicy(ABC):
+
+class DirectoryRejector(ABC):
     """
-    ディレクトリを検索する際の検索対象かどうかの判定基準
+    ディレクトリを検索対象から除外するためのフィルタ
     """
 
     @abstractmethod
-    def is_scantarget(self, dirpath: Path) -> bool:
+    def is_reject_target(self, dir_path: Path) -> bool:
         pass
 
 
-class DisableScanDirectoryPolicy(DirectoryScanPolicy):
+class AllRejector(DirectoryRejector):
     """
-    全てのディレクトリの検索を無効にしたい場合のポリシー
+    全てのディレクトリをブロックするフィルタです。
+    再帰的なディレクトリ検索を無効化する場合に使用します。
     """
 
     @override
-    def is_scantarget(self, dirpath: Path) -> bool:
-        """
-        常にFalseを返します。
-        """
-        return False
-
-
-class ExcludeDirectoryByNamePolicy(DirectoryScanPolicy):
-    """
-    ディレクトリを検索するかをディレクトリ名から判定する条件
-    """
-
-    _EXCLUDE_DIR_NAMES = (".venv", "venv", "__pycache__", ".git")
-
-    def __init__(self, exclude_dir_names: Sequence[str]):
-        self._exclude_dir_names = [*self._EXCLUDE_DIR_NAMES, *exclude_dir_names]
-
-    @override
-    def is_scantarget(self, dirpath: Path) -> bool:
-        return dirpath.name not in self._exclude_dir_names
-
-
-class AndDirectoryScanPolicies(DirectoryScanPolicy):
-    """
-    登録されたディレクトリ検索条件が全て満たされているかを判定するための条件
-    """
-
-    def __init__(self, scan_policies: Sequence[DirectoryScanPolicy]):
-        self._scan_policies = tuple(scan_policies)
-
-    @override
-    def is_scantarget(self, dirpath: Path) -> bool:
-        """
-        条件が未登録の場合は常にTrueを返します。
-        """
-        for policy in self._scan_policies:
-            if not policy.is_scantarget(dirpath):
-                return False
+    def is_reject_target(self, dir_path: Path) -> bool:
         return True
 
 
-def create_and_directory_scan_policy(
-    recursive: bool, exclude_dirnames: Sequence[str]
-) -> AndDirectoryScanPolicies:
-    policies: list[DirectoryScanPolicy] = []
-    if not recursive:
-        policies.append(DisableScanDirectoryPolicy())
-    policies.append(ExcludeDirectoryByNamePolicy(exclude_dirnames))
-    return AndDirectoryScanPolicies(policies)
+class DirectoryNameRejectFilter(DirectoryRejector):
+    """
+    ディレクトリ名から除外対象を判定するフィルタ
+    """
+
+    def __init__(self, directory_name_pattern: re.Pattern[str]):
+        self._directory_name_pattern = directory_name_pattern
+
+    @override
+    def is_reject_target(self, dir_path: Path) -> bool:
+        return self._directory_name_pattern.fullmatch(dir_path.name) is not None
+
+
+class DirectoryRejectorOrCondition(DirectoryRejector):
+    def __init__(self, filters: Sequence[DirectoryRejector]):
+        self._filters = filters
+
+    @override
+    def is_reject_target(self, dir_path: Path) -> bool:
+        # 登録フィルタがない場合は、そもそもフィルタリングしないことと同意なので常にTrueを返す
+        if len(self._filters) == 0:
+            return True
+
+        for filter in self._filters:
+            if filter.is_reject_target(dir_path):
+                return True
+        return False
+
+
+def create_scan_directory_reject_filter(
+    is_recursive: bool,
+    additional_reject_dir_name_patterns: Sequence[re.Pattern[str]],
+) -> DirectoryRejector:
+    directory_rejector: list[DirectoryRejector] = []
+
+    if not is_recursive:
+        directory_rejector.append(AllRejector())
+
+    for pattern in _DEFAULT_EXCLUDE_DIR_NAME_PATTERNS:
+        directory_rejector.append(DirectoryNameRejectFilter(pattern))
+
+    for pattern in additional_reject_dir_name_patterns:
+        directory_rejector.append(DirectoryNameRejectFilter(pattern))
+
+    # 1つでもReject条件にマッチしたらRejectになるためOrで結合する
+    return DirectoryRejectorOrCondition(directory_rejector)
 
 
 class FileCollector(ABC):
@@ -88,19 +99,17 @@ class DirectoryScanner(FileCollector):
     ディレクトリを検索してファイルを収集するAPI
     """
 
-    _EXCLUDE_DIR_NAMES = (".venv", "venv", "__pycache__", ".git")
-
     def __init__(
         self,
         scan_root_dir: Path,
-        directory_scan_policy: DirectoryScanPolicy,
+        directory_rejector: DirectoryRejector,
     ):
         if not scan_root_dir.is_dir():
             raise ValueError(
                 f"scan tmp_path directory is not directory: {scan_root_dir}"
             )
         self._scan_root_dir = scan_root_dir
-        self._directory_scan_policy = directory_scan_policy
+        self._directory_rejector = directory_rejector
 
 
 class DFSDirectoryScanner(DirectoryScanner):
@@ -111,10 +120,10 @@ class DFSDirectoryScanner(DirectoryScanner):
     def __init__(
         self,
         scan_root_dir: Path,
-        directory_scan_policy: DirectoryScanPolicy,
+        directory_rejector: DirectoryRejector,
         logger: Logger,
     ):
-        super().__init__(scan_root_dir, directory_scan_policy)
+        super().__init__(scan_root_dir, directory_rejector)
         self._logger = logger
 
     @override
@@ -132,9 +141,9 @@ class DFSDirectoryScanner(DirectoryScanner):
                             if entry.is_file(follow_symlinks=False):
                                 yield Path(entry.path)
                             elif entry.is_dir(follow_symlinks=False):
-                                dir = Path(entry.path)
-                                if self._directory_scan_policy.is_scantarget(dir):
-                                    dir_stack.append(dir)
+                                dir_path = Path(entry.path)
+                                if not self._directory_rejector.is_reject_target(dir_path):
+                                    dir_stack.append(dir_path)
                         except FileNotFoundError:
                             self._logger.info(
                                 "skip file scan: file not found: %s", entry.path

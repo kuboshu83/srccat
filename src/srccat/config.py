@@ -2,7 +2,6 @@ import argparse
 import re
 from pathlib import Path
 from dataclasses import dataclass
-from abc import ABC, abstractmethod
 
 import srccat.model
 import srccat.errors
@@ -17,7 +16,7 @@ class ApplicationConfig:
     language: srccat.model.Language
     scan_directory_recursive: bool
     scan_root_directory: Path
-    scan_exclude_directory_names: tuple[str, ...]
+    reject_dir_name_patterns: tuple[re.Pattern[str], ...]
     source_file_encoding: srccat.model.Encoding
     source_file_name_patterns: tuple[re.Pattern[str], ...]
 
@@ -27,7 +26,7 @@ class ApplicationConfig:
         programming_language: str,
         scan_directory_recursive: bool,
         scan_root_directory: str,
-        scan_exclude_directory_names: list[str],
+        reject_dir_name_patterns: list[str],
         source_file_encoding: str,
         source_file_name_patterns: list[str],
     ) -> ApplicationConfig:
@@ -51,11 +50,20 @@ class ApplicationConfig:
                 f"invalid encoding: {source_file_encoding}"
             ) from ex
 
-        patterns: list[re.Pattern[str]] = []
+        dir_name_patterns: list[re.Pattern[str]] = []
+        for pattern_str in reject_dir_name_patterns:
+            try:
+                dir_name_patterns.append(re.compile(pattern_str))
+            except re.error as ex:
+                raise srccat.errors.InvalidConfigError(
+                    f"invalid reject directory name regex pattern: {pattern_str}"
+                ) from ex
+
+        file_name_patterns: list[re.Pattern[str]] = []
         for pattern in source_file_name_patterns:
             try:
-                patterns.append(re.compile(pattern))
-            except re.PatternError as ex:
+                file_name_patterns.append(re.compile(pattern))
+            except re.error as ex:
                 raise srccat.errors.InvalidConfigError(
                     f"invalid search file name regex pattern: {pattern}"
                 ) from ex
@@ -64,27 +72,13 @@ class ApplicationConfig:
             language=language,
             scan_directory_recursive=scan_directory_recursive,
             scan_root_directory=dirpath,
-            scan_exclude_directory_names=tuple(scan_exclude_directory_names),
+            reject_dir_name_patterns=tuple(dir_name_patterns),
             source_file_encoding=encoding,
-            source_file_name_patterns=tuple(patterns),
+            source_file_name_patterns=tuple(file_name_patterns),
         )
 
 
-class ConfigGenerator(ABC):
-    """
-    アプリケーションで使用する設定を取得するAPI
-    """
-
-    @abstractmethod
-    def get_config(self) -> ApplicationConfig:
-        pass
-
-
-class CommandLineConfigGenerator(ConfigGenerator):
-    """
-    コマンドラインから設定を取得するクラス
-    """
-
+class CommandLineConfigGenerator:
     def get_config(self) -> ApplicationConfig:
         parser = argparse.ArgumentParser()
 
@@ -128,7 +122,7 @@ class CommandLineConfigGenerator(ConfigGenerator):
             programming_language=args.language,
             scan_directory_recursive=recursive,
             scan_root_directory=args.directory,
-            scan_exclude_directory_names=args.excludes,
+            reject_dir_name_patterns=args.excludes,
             source_file_encoding=args.encoding,
             source_file_name_patterns=args.patterns,
         )
