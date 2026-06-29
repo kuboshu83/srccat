@@ -4,16 +4,39 @@ import srccat.model as model
 import srccat.errors as errors
 
 
+class TestEncoding:
+    class TestFromStr:
+        class TestAbnormal:
+            @pytest.mark.parametrize(
+                "invalid_encoding_str",
+                (
+                    "",
+                    " ",
+                    "utf",
+                    "shift-jis",
+                    "shift_jis",
+                    " utf8",
+                    "utf8 ",
+                    "utf-8",
+                    "ascii",
+                ),
+            )
+            def test_invalid_encoding_string_throw(self, invalid_encoding_str: str):
+                # act, assert
+                with pytest.raises(errors.InvalidArgumentError):
+                    model.Encoding.from_str(invalid_encoding_str)
+
+
 class TestLanguage:
     class TestFromStr:
         class TestAbnormal:
             @pytest.mark.parametrize(
-                "language_str", ("ruby", "", " ", " python", "python ", "")
+                "invalid_language_str", ("ruby", "", " ", " python", "python ", "")
             )
-            def test_invalid_name_string(self, language_str: str):
+            def test_invalid_language_string_throw(self, invalid_language_str: str):
                 # act, assert
                 with pytest.raises(errors.InvalidArgumentError):
-                    model.Language.from_str(language_str)
+                    model.Language.from_str(invalid_language_str)
 
         class TestNormal:
             @pytest.mark.parametrize(
@@ -26,7 +49,9 @@ class TestLanguage:
                     ("kotlin", model.Language.KOTLIN),
                 ),
             )
-            def test_name_string(self, language_str: str, language: model.Language):
+            def test_valid_language_string_return_inctance(
+                self, language_str: str, language: model.Language
+            ):
                 # act
                 actual = model.Language.from_str(language_str)
                 # assert
