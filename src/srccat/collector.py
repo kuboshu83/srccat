@@ -6,6 +6,8 @@ from typing import override
 import re
 import os
 
+import srccat.errors as errors
+
 # 常に検索から除外したいディレクトリはここに追加してください
 _DEFAULT_EXCLUDE_DIR_NAME_PATTERNS = (
     re.compile(r"^\.venv$"),
@@ -95,7 +97,7 @@ class DirectoryScanner(ABC):
         directory_rejector: DirectoryRejector,
     ):
         if not scan_root_dir.is_dir():
-            raise ValueError(
+            raise errors.InvalidArgumentError(
                 f"scan tmp_path directory is not directory: {scan_root_dir}"
             )
         self._scan_root_dir = scan_root_dir
