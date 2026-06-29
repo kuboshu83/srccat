@@ -36,6 +36,9 @@ class FileFilterOrCondition(FileFilter):
 
 
 def create_file_name_filter(file_name_patterns: Sequence[re.Pattern[str]]) -> FileFilter:
+    """
+    パターンが１つも渡されなかったら、名前でフィルタしないことになるので常にTrueを返すフィルタを作成する。
+    """
     # ファイル名は様々なパターンで取得したくなる場合が多いので、ANDではなくてORで結合するのが無難。
     file_name_filters: list[FileNameFilter] = []
     for pattern in file_name_patterns:
