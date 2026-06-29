@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import override
 
 
-class TestFileFilterByFileNamePattern:
+class TestFileNameFilter:
     class TestIsTarget:
         class TestNormal:
             @pytest.mark.parametrize("filename", (Path("sample.py"), Path("smp.py")))
