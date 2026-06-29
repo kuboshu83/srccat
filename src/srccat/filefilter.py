@@ -20,7 +20,7 @@ class FileNameFilter(FileFilter):
         return self._pattern.fullmatch(file.name) is not None
 
 
-class FileFilterOrCondtion(FileFilter):
+class FileFilterOrCondition(FileFilter):
     def __init__(self, filters: Sequence[FileFilter]):
         self._filters = filters
 
@@ -40,7 +40,7 @@ def create_file_name_filter(file_name_patterns: Sequence[re.Pattern[str]]) -> Fi
     file_name_filters: list[FileNameFilter] = []
     for pattern in file_name_patterns:
         file_name_filters.append(FileNameFilter(pattern))
-    return FileFilterOrCondtion(file_name_filters)
+    return FileFilterOrCondition(file_name_filters)
 
 
 class FilteredFileCollector:
