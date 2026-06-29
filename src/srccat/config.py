@@ -21,14 +21,14 @@ def _convert_string_to_language(language_str: str) -> model.Language:
     try:
         return model.Language.from_str(language_str)
     except errors.InvalidArgumentError as ex:
-        raise errors.InvalidConfigError("language conversion error: %s", ex) from ex
+        raise errors.InvalidConfigError(f"language conversion error: {ex}") from ex
 
 
 def _convert_string_to_encoding(encoding_str: str) -> model.Encoding:
     try:
         return model.Encoding.from_str(encoding_str)
     except errors.InvalidArgumentError as ex:
-        raise errors.InvalidConfigError("encoding conversion error: %s", ex) from ex
+        raise errors.InvalidConfigError(f"encoding conversion error: {ex}") from ex
 
 
 def _convert_string_to_regex_pattern(
@@ -41,7 +41,7 @@ def _convert_string_to_regex_pattern(
             patterns.append(re.compile(pattern_str))
         except re.error as ex:
             raise errors.InvalidConfigError(
-                "invalid reject directory name regex pattern: %s", pattern_str, ex
+                f"invalid reject directory name regex pattern: {pattern_str}: {ex}"
             ) from ex
     return patterns
 
