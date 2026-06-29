@@ -132,7 +132,7 @@ class DFSDirectoryScanner(DirectoryScanner):
                             if entry.is_file(follow_symlinks=False):
                                 yield Path(entry.path)
                             elif entry.is_dir(follow_symlinks=False):
-                                dir = Path(entry)
+                                dir = Path(entry.path)
                                 if self._directory_scan_policy.is_scantarget(dir):
                                     dir_stack.append(dir)
                         except FileNotFoundError:
