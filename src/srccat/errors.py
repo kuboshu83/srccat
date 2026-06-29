@@ -3,3 +3,6 @@ class InvalidConfigError(Exception):
 
 class InvalidStatusError(Exception):
     pass
+
+class InvalidArgumentError(Exception):
+    pass
