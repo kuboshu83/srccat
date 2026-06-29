@@ -29,7 +29,7 @@ class Encoding(Enum):
         for encode in cls:
             if encode.name == encoding.upper():
                 return encode
-        raise ValueError(f"unsupported encoding: {encoding}")
+        raise errors.InvalidArgumentError(f"unsupported encoding: {encoding}")
 
 
 class Result(Enum):
@@ -138,4 +138,4 @@ class Language(Enum):
         for lang in cls:
             if lang.name == language.upper():
                 return lang
-        raise ValueError(f"unsupported language: {language}")
+        raise errors.InvalidArgumentError(f"unsupported language: '{language}'")
