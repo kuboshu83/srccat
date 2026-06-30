@@ -15,8 +15,12 @@ def run(
     collector: srccat.collector.FilteredFileCollector,
     encoding: srccat.model.Encoding,
     max_source_file_line_no: int,
+    enable_base64: bool,
 ) -> str:
-    return build_review_document(language, collector, encoding, max_source_file_line_no)
+    text = build_review_document(language, collector, encoding, max_source_file_line_no)
+    if enable_base64:
+        return processor.convert_to_base64(text)
+    return text
 
 
 def build_review_document(
@@ -62,7 +66,8 @@ def main():
     )
     file_collector = srccat.collector.FilteredFileCollector(dir_scanner, filters)
     encoding = config.source_file_encoding
-    text = run(language, file_collector, encoding, _MAX_LINE_NO)
+    base64 = config.enable_encode_base64
+    text = run(language, file_collector, encoding, _MAX_LINE_NO, base64)
     print(text)
 
     error_count = file_collector.error_count
