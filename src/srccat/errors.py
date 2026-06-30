@@ -6,3 +6,6 @@ class InvalidStatusError(Exception):
 
 class InvalidArgumentError(Exception):
     pass
+
+class TooManyLinesError(Exception):
+    pass
