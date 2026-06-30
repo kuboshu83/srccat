@@ -30,10 +30,13 @@ def build_review_document(
     max_source_file_line_no: int,
 ) -> str:
     loaded_source_files: list[model.LoadedSourceCode] = []
+    code_processor = processor.generate_source_code_processor(
+        max_source_file_line_no, language
+    )
     for path in collector.collect_target_files():
         try:
             raw_code = path.read_text(encoding=encoding.codec, errors="strict")
-            processed_code = processor.process_source_code(raw_code, max_source_file_line_no)
+            processed_code = code_processor(raw_code)
             loaded_source_files.append(
                 model.LoadedSourceCode.with_success(str(path), processed_code)
             )
