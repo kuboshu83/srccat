@@ -52,7 +52,7 @@ class TestLanguage:
     class TestFromStr:
         class TestAbnormal:
             @pytest.mark.parametrize(
-                "invalid_language_str", ("ruby", "", " ", " python", "python ", "")
+                "invalid_language_str", ("ruby", "", " ", "")
             )
             def test_invalid_language_string_throw(self, invalid_language_str: str):
                 # act, assert

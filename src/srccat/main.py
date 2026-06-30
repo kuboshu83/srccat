@@ -40,7 +40,7 @@ def main():
     scan_root_dir = config.scan_root_directory
     filters = srccat.filefilter.create_file_name_filter(
         file_name_patterns=config.source_file_name_patterns
-        + (language.filename_pattern,)
+        + (srccat.model.get_language_default_filename_pattern(language),)
     )
     logger = logging.getLogger("srccat")
     scan_directory_filter = srccat.collector.create_scan_directory_reject_filter(

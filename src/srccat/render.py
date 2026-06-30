@@ -17,9 +17,9 @@ def render_review_document(
     loaded_source_files: Sequence[srccat.model.LoadedSourceCode],
     language_version: str | None = None,
 ) -> str:
-    template = _env.get_template(language.template_filename)
+    template = _env.get_template(srccat.model.get_language_template_file_name(language))
     return template.render(
-        language=language.display_name,
+        language=srccat.model.get_template_display_name(language),
         language_version=language_version,
         loaded_source_files=loaded_source_files,
     )
