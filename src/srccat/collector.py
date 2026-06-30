@@ -174,17 +174,17 @@ class DFSDirectoryScanner(DirectoryScanner):
                             continue
                         except PermissionError as ex:
                             self._warning_log_with_error(
-                                "skip file scan: permission error :{entry.path}", ex
+                                f"skip file scan: permission error :{entry.path}", ex
                             )
                             continue
             except FileNotFoundError as ex:
                 self._info_log_with_error(
-                    "skip directory scan: directory not found: {p}", ex
+                    f"skip directory scan: directory not found: {p}", ex
                 )
                 continue
             except PermissionError as ex:
                 self._warning_log_with_error(
-                    "skip directory scan: permission error: {p}", ex
+                    f"skip directory scan: permission error: {p}", ex
                 )
                 continue
 
