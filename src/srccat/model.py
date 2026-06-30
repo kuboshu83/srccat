@@ -79,12 +79,8 @@ class LoadedSourceCode:
     load_result: LoadResult
 
     def __post_init__(self):
-        # パスとして有効かはパスとして使用した場合にわかるため、ここでは空の場合と巨大な文字列の場合を除外する
-        path_length = len(self.file_path)
-        if path_length == 0 or path_length >= 300:
-            raise errors.InvalidArgumentError(
-                f"path is blank or too long: {path_length}"
-            )
+        if self.file_path.strip() == "":
+            raise errors.InvalidArgumentError(f"path is blank")
 
         if self.load_result.is_success and self.code is None:
             raise errors.InvalidStatusError("load success but code is None")

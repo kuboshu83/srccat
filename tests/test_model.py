@@ -102,18 +102,3 @@ class TestLoadedSourceCode:
                 with pytest.raises(errors.InvalidArgumentError):
                     success = model.LoadResult.success()
                     model.LoadedSourceCode("", "code", success)
-
-            def test_too_long_filepath_throw(self):
-                # act, assert
-                long_path = "a" * 300
-                with pytest.raises(errors.InvalidArgumentError):
-                    success = model.LoadResult.success()
-                    model.LoadedSourceCode(long_path, "code", success)
-
-        class TestNormal:
-            def test_long_filepath_but_less_than_limit(self):
-                # act
-                long_path = "a" * 299
-                success = model.LoadResult.success()
-                model.LoadedSourceCode(long_path, "code", success)
-                # インスタンスが生成できればパスなので、assertionによる検証は不要
