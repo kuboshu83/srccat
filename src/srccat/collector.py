@@ -58,6 +58,9 @@ class DirectoryRejectorOrCondition(DirectoryRejector):
 
     @override
     def is_reject_target(self, dir_path: Path) -> bool:
+        """
+        フィルター未登録状態では常にFalseを返すので注意してください。
+        """
         # 登録Rejectorがない場合は、そもそもRejectしないことと同意なので常にFalseを返す
         if len(self._filters) == 0:
             return False
@@ -105,6 +108,7 @@ class DirectoryScanner(ABC):
             )
         self._scan_root_dir = scan_root_dir
         self._directory_rejector = directory_rejector
+        # _error_countはスレッドセールではないが、現状シングルスレッドで動作するCLIのためスレッドセーフ化未対応
         self._error_count = 0
 
     @property

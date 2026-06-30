@@ -24,6 +24,9 @@ class FileFilterOrCondition(FileFilter):
         self._filters = filters
 
     def is_target(self, file: Path) -> bool:
+        """
+        フィルター未登録状態では常にTrueを返すので注意してください。
+        """
         # 登録フィルタがない場合は、そもそもフィルタリングしないことと同意なので常にTrueを返す
         if len(self._filters) == 0:
             return True
