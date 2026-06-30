@@ -43,7 +43,7 @@ def remove_empty_line(text: str) -> str:
 
 
 # 読み込んだソースコードの先頭に行番号を追加するために使用する。
-def add_line_number_to_head(text: str, max_line_no: int) -> str:
+def process_source_code(text: str, max_line_no: int) -> str:
     if max_line_no <= 0:
         raise errors.InvalidArgumentError(
             f"max line number must be >0 but {max_line_no}"

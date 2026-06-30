@@ -10,12 +10,6 @@ import logging
 _MAX_LINE_NO = 10000
 
 
-# ソースコードを加工する関数です。
-# ソースコードに対する加工を行いたい場合は、この関数に処理を追加してください。
-def _process_source_code(code: str, max_line_no: int) -> str:
-    return processor.add_line_number_to_head(code, max_line_no)
-
-
 def run(
     language: model.Language,
     collector: collector.FilteredFileCollector,
@@ -39,7 +33,7 @@ def build_review_document(
     for path in collector.collect_target_files():
         try:
             raw_code = path.read_text(encoding=encoding.codec, errors="strict")
-            processed_code = _process_source_code(raw_code, max_source_file_line_no)
+            processed_code = processor.process_source_code(raw_code, max_source_file_line_no)
             loaded_source_files.append(
                 model.LoadedSourceCode.with_success(str(path), processed_code)
             )
