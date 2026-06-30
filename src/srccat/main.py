@@ -30,7 +30,7 @@ def build_review_document(
     max_source_file_line_no: int,
 ) -> str:
     loaded_source_files: list[model.LoadedSourceCode] = []
-    code_processor = processor.generate_source_code_processor(
+    code_processor = processor.build_source_code_processor(
         max_source_file_line_no, language
     )
     for path in collector.collect_target_files():

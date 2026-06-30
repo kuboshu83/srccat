@@ -92,7 +92,7 @@ def select_language_code_processors(
         ) from ex
 
 
-def generate_source_code_processor(
+def build_source_code_processor(
     max_line_number: int, language: model.Language
 ) -> Processor:
     processors = select_language_code_processors(language)
