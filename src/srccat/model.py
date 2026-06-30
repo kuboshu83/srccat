@@ -21,6 +21,7 @@ class Encoding(Enum):
 
     @classmethod
     def from_str(cls, encoding_str: str) -> Encoding:
+        # encodingの種類が増えた際はこのリストに要素を追加してください。
         patterns: list[tuple[re.Pattern[str], Encoding]] = [
             (re.compile(r"^utf[-_]?8$", re.IGNORECASE), Encoding.UTF8),
             (re.compile(r"^utf[-_]?16$", re.IGNORECASE), Encoding.UTF16),
