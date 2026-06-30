@@ -58,6 +58,7 @@ class ApplicationConfig:
     reject_dir_name_patterns: tuple[re.Pattern[str], ...]
     source_file_encoding: model.Encoding
     source_file_name_patterns: tuple[re.Pattern[str], ...]
+    enable_encode_base64: bool
 
     @classmethod
     def convert_from(
@@ -68,6 +69,7 @@ class ApplicationConfig:
         reject_dir_name_patterns: list[str],
         source_file_encoding: str,
         source_file_name_patterns: list[str],
+        enable_encode_base64: bool,
     ) -> ApplicationConfig:
         language = _convert_string_to_language(programming_language)
         dirpath = _convert_string_to_scan_root_dir(scan_root_directory)
@@ -82,6 +84,7 @@ class ApplicationConfig:
             reject_dir_name_patterns=tuple(dir_name_patterns),
             source_file_encoding=encoding,
             source_file_name_patterns=tuple(file_name_patterns),
+            enable_encode_base64=enable_encode_base64,
         )
 
 
@@ -119,6 +122,11 @@ class CommandLineConfigGenerator:
             help="collect file name patterns",
             default=[],
         )
+        parser.add_argument(
+            "--base64",
+            action="store_true",
+            help="encode output file with base64",
+        )
 
         args = parser.parse_args()
 
@@ -131,4 +139,5 @@ class CommandLineConfigGenerator:
             reject_dir_name_patterns=args.excludes,
             source_file_encoding=args.encoding,
             source_file_name_patterns=args.patterns,
+            enable_encode_base64=args.base64,
         )
