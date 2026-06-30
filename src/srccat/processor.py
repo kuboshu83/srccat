@@ -97,13 +97,14 @@ def generate_source_code_processor(
 ) -> Processor:
     processors = select_language_code_processors(language)
 
-    def _process_source_code(text: str) -> str:
-        if max_line_number <= 0:
-            raise errors.InvalidArgumentError(
-                f"max line number must be >0 but {max_line_number}"
-            )
+    if max_line_number <= 0:
+        raise errors.InvalidArgumentError(
+            f"max line number must be >0 but {max_line_number}"
+        )
 
-        digits = len(str(max_line_number))
+    digits = len(str(max_line_number))
+
+    def _process_source_code(text: str) -> str:
 
         processed_text: list[str] = []
         for line_no, line in enumerate(io.StringIO(text), start=1):
