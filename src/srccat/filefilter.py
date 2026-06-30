@@ -3,6 +3,8 @@ import re
 from pathlib import Path
 from typing import Sequence, override
 
+import srccat.model as model
+
 
 class FileFilter(ABC):
     @abstractmethod
@@ -37,14 +39,18 @@ class FileFilterOrCondition(FileFilter):
         return False
 
 
-def create_file_name_filter(
-    file_name_patterns: Sequence[re.Pattern[str]],
+def build_filename_fileter(
+    language: model.Language, additional_patterns: Sequence[re.Pattern[str]]
 ) -> FileFilter:
     """
-    パターンが１つも渡されなかったら、名前でフィルタしないことになるので常にTrueを返すフィルタを作成する。
+    言語毎のデフォルトのファイル名パターンとユーザ定義のファイル名パターンを合成したフィルタを生成します。
+    いずれかのパターンに一致するファイルを透過させるフィルタとなります。
     """
-    # ファイル名は様々なパターンで取得したくなる場合が多いので、ANDではなくてORで結合するのが無難。
-    file_name_filters: list[FileNameFilter] = []
-    for pattern in file_name_patterns:
-        file_name_filters.append(FileNameFilter(pattern))
-    return FileFilterOrCondition(file_name_filters)
+    default_pattern = model.get_language_default_filename_pattern(language)
+    patterns = [default_pattern, *additional_patterns]
+
+    filters: list[FileNameFilter] = []
+    for pattern in patterns:
+        filters.append(FileNameFilter(pattern))
+
+    return FileFilterOrCondition(filters)

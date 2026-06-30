@@ -46,26 +46,23 @@ def build_review_document(
 
 
 def main():
-    app_config = config.CommandLineConfigGenerator().get_config()
-    language = app_config.language
-    scan_root_dir = app_config.scan_root_directory
-    filters = filefilter.create_file_name_filter(
-        file_name_patterns=app_config.source_file_name_patterns
-        + (model.get_language_default_filename_pattern(language),)
-    )
+    configs = config.CommandLineConfigGenerator().get_config()
+    language = configs.language
+    scan_root_dir = configs.scan_root_directory
+    filters = filefilter.build_filename_fileter(language, configs.src_filename_patterns)
     logger = logging.getLogger("srccat")
-    scan_directory_filter = collector.create_scan_directory_reject_filter(
-        is_recursive=app_config.scan_directory_recursive,
-        additional_reject_dir_name_patterns=app_config.reject_dir_name_patterns,
+    scan_dir_filter = collector.create_scan_directory_reject_filter(
+        is_recursive=configs.scan_directory_recursive,
+        additional_reject_dir_name_patterns=configs.reject_dir_name_patterns,
     )
     dir_scanner = collector.DFSDirectoryScanner(
         scan_root_dir=scan_root_dir,
-        directory_rejector=scan_directory_filter,
+        directory_rejector=scan_dir_filter,
         logger=logger,
     )
     file_collector = collector.FilteredFileCollector(dir_scanner, filters)
-    encoding = app_config.source_file_encoding
-    base64 = app_config.enable_encode_base64
+    encoding = configs.src_file_encoding
+    base64 = configs.enable_encode_base64
     text = run(language, file_collector, encoding, _MAX_LINE_NO, base64)
     print(text)
 
