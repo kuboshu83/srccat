@@ -51,13 +51,13 @@ def main():
     scan_root_dir = configs.scan_root_directory
     filters = filefilter.build_filename_fileter(language, configs.src_filename_patterns)
     logger = logging.getLogger("srccat")
-    scan_directory_filter = collector.create_scan_directory_reject_filter(
+    scan_dir_filter = collector.create_scan_directory_reject_filter(
         is_recursive=configs.scan_directory_recursive,
         additional_reject_dir_name_patterns=configs.reject_dir_name_patterns,
     )
     dir_scanner = collector.DFSDirectoryScanner(
         scan_root_dir=scan_root_dir,
-        directory_rejector=scan_directory_filter,
+        directory_rejector=scan_dir_filter,
         logger=logger,
     )
     file_collector = collector.FilteredFileCollector(dir_scanner, filters)
