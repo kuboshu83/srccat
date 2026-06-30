@@ -101,8 +101,7 @@ class CommandLineConfigGenerator:
         parser.add_argument("--directory", default=".", help="scan root directory")
         parser.add_argument(
             "--encoding",
-            choices=["utf8", "utf16", "shiftjis"],
-            default="utf8",
+            default="utf-8",
             type=str,
             help="source code file encoding",
         )

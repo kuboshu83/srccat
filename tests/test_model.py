@@ -12,12 +12,9 @@ class TestEncoding:
                 (
                     "",
                     " ",
-                    "utf",
-                    "shift-jis",
-                    "shift_jis",
-                    " utf8",
-                    "utf8 ",
-                    "utf-8",
+                    "utf 8",
+                    "utf=8",
+                    "utf+8",
                     "ascii",
                 ),
             )
@@ -25,6 +22,30 @@ class TestEncoding:
                 # act, assert
                 with pytest.raises(errors.InvalidArgumentError):
                     model.Encoding.from_str(invalid_encoding_str)
+
+        class TestNormal:
+            @pytest.mark.parametrize(
+                "encoding_str, encoding",
+                [
+                    [" shiftjis ", model.Encoding.SHIFTJIS],
+                    [" shift-jis ", model.Encoding.SHIFTJIS],
+                    [" shift_jis ", model.Encoding.SHIFTJIS],
+                    [" utf8 ", model.Encoding.UTF8],
+                    [" utf-8", model.Encoding.UTF8],
+                    [" utf_8", model.Encoding.UTF8],
+                    [" utf16 ", model.Encoding.UTF16],
+                    [" utf-16", model.Encoding.UTF16],
+                    [" utf_16", model.Encoding.UTF16],
+                ],
+            )
+            def test_encoding_string_return_encoding(
+                self, encoding_str: str, encoding: model.Encoding
+            ):
+                # act
+                result = model.Encoding.from_str(encoding_str)
+
+                # assert
+                assert result == encoding
 
 
 class TestLanguage:

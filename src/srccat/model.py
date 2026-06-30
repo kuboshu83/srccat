@@ -5,31 +5,32 @@ import re
 import srccat.errors as errors
 
 
-@dataclass(frozen=True)
-class _EncodingInfo:
-    display_name: str
-    codec: str
-
-
 class Encoding(Enum):
-    UTF8 = _EncodingInfo("utf8", "utf-8")
-    UTF16 = _EncodingInfo("utf16", "utf-16")
-    SHIFTJIS = _EncodingInfo("shift-jis", "shift_jis")
+
+    UTF8 = "utf-8"
+    UTF16 = "utf-16"
+    SHIFTJIS = "shift_jis"
 
     @property
     def display_name(self) -> str:
-        return self.value.display_name
+        return self.value
 
     @property
     def codec(self) -> str:
-        return self.value.codec
+        return self.value
 
     @classmethod
-    def from_str(cls, encoding: str) -> Encoding:
-        for encode in cls:
-            if encode.name == encoding.upper():
-                return encode
-        raise errors.InvalidArgumentError(f"unsupported encoding: {encoding}")
+    def from_str(cls, encoding_str: str) -> Encoding:
+        patterns: list[tuple[re.Pattern[str], Encoding]] = [
+            (re.compile(r"^utf[-_]?8$", re.IGNORECASE), Encoding.UTF8),
+            (re.compile(r"^utf[-_]?16$", re.IGNORECASE), Encoding.UTF16),
+            (re.compile(r"^shift[-_]?jis$", re.IGNORECASE), Encoding.SHIFTJIS),
+        ]
+
+        for pattern, encoding in patterns:
+            if pattern.fullmatch(encoding_str.strip()) is not None:
+                return encoding
+        raise errors.InvalidArgumentError(f"unsupported encoding: {encoding_str}")
 
 
 class Result(Enum):
