@@ -49,9 +49,8 @@ def main():
     app_config = config.CommandLineConfigGenerator().get_config()
     language = app_config.language
     scan_root_dir = app_config.scan_root_directory
-    filters = filefilter.create_file_name_filter(
-        file_name_patterns=app_config.source_file_name_patterns
-        + (model.get_language_default_filename_pattern(language),)
+    filters = filefilter.build_filename_fileter(
+        language, app_config.source_file_name_patterns
     )
     logger = logging.getLogger("srccat")
     scan_directory_filter = collector.create_scan_directory_reject_filter(
