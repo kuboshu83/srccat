@@ -56,8 +56,8 @@ class ApplicationConfig:
     scan_directory_recursive: bool
     scan_root_directory: Path
     reject_dir_name_patterns: tuple[re.Pattern[str], ...]
-    source_file_encoding: model.Encoding
-    source_file_name_patterns: tuple[re.Pattern[str], ...]
+    src_file_encoding: model.Encoding
+    src_filename_patterns: tuple[re.Pattern[str], ...]
     enable_encode_base64: bool
 
     @classmethod
@@ -67,23 +67,23 @@ class ApplicationConfig:
         scan_directory_recursive: bool,
         scan_root_directory: str,
         reject_dir_name_patterns: list[str],
-        source_file_encoding: str,
-        source_file_name_patterns: list[str],
+        src_file_encoding: str,
+        src_filename_patterns: list[str],
         enable_encode_base64: bool,
     ) -> ApplicationConfig:
         language = _convert_string_to_language(programming_language)
         dirpath = _convert_string_to_scan_root_dir(scan_root_directory)
-        encoding = _convert_string_to_encoding(source_file_encoding)
+        encoding = _convert_string_to_encoding(src_file_encoding)
         dir_name_patterns = _convert_string_to_regex_pattern(reject_dir_name_patterns)
-        file_name_patterns = _convert_string_to_regex_pattern(source_file_name_patterns)
+        file_name_patterns = _convert_string_to_regex_pattern(src_filename_patterns)
 
         return ApplicationConfig(
             language=language,
             scan_directory_recursive=scan_directory_recursive,
             scan_root_directory=dirpath,
             reject_dir_name_patterns=tuple(dir_name_patterns),
-            source_file_encoding=encoding,
-            source_file_name_patterns=tuple(file_name_patterns),
+            src_file_encoding=encoding,
+            src_filename_patterns=tuple(file_name_patterns),
             enable_encode_base64=enable_encode_base64,
         )
 
@@ -137,7 +137,7 @@ class CommandLineConfigGenerator:
             scan_directory_recursive=recursive,
             scan_root_directory=args.directory,
             reject_dir_name_patterns=args.excludes,
-            source_file_encoding=args.encoding,
-            source_file_name_patterns=args.patterns,
+            src_file_encoding=args.encoding,
+            src_filename_patterns=args.patterns,
             enable_encode_base64=args.base64,
         )
