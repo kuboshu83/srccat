@@ -5,31 +5,33 @@ import re
 import srccat.errors as errors
 
 
-@dataclass(frozen=True)
-class _EncodingInfo:
-    display_name: str
-    codec: str
-
-
 class Encoding(Enum):
-    UTF8 = _EncodingInfo("utf8", "utf-8")
-    UTF16 = _EncodingInfo("utf16", "utf-16")
-    SHIFTJIS = _EncodingInfo("shift-jis", "shift_jis")
+
+    UTF8 = "utf-8"
+    UTF16 = "utf-16"
+    SHIFTJIS = "shift_jis"
 
     @property
     def display_name(self) -> str:
-        return self.value.display_name
+        return self.value
 
     @property
     def codec(self) -> str:
-        return self.value.codec
+        return self.value
 
     @classmethod
-    def from_str(cls, encoding: str) -> Encoding:
-        for encode in cls:
-            if encode.name == encoding.upper():
-                return encode
-        raise errors.InvalidArgumentError(f"unsupported encoding: {encoding}")
+    def from_str(cls, encoding_str: str) -> Encoding:
+        # encodingの種類が増えた際はこのリストに要素を追加してください。
+        patterns: list[tuple[re.Pattern[str], Encoding]] = [
+            (re.compile(r"^utf[-_]?8$", re.IGNORECASE), Encoding.UTF8),
+            (re.compile(r"^utf[-_]?16$", re.IGNORECASE), Encoding.UTF16),
+            (re.compile(r"^shift[-_]?jis$", re.IGNORECASE), Encoding.SHIFTJIS),
+        ]
+
+        for pattern, encoding in patterns:
+            if pattern.fullmatch(encoding_str.strip()) is not None:
+                return encoding
+        raise errors.InvalidArgumentError(f"unsupported encoding: {encoding_str}")
 
 
 class Result(Enum):
@@ -107,35 +109,71 @@ class LoadedSourceCode:
         return LoadedSourceCode(file_path, None, LoadResult.fail(exception))
 
 
-@dataclass(frozen=True)
-class _LangInfo:
-    display_name: str
-    template_filename: str
-    filename_pattern: re.Pattern[str]
-
-
 class Language(Enum):
-    PYTHON = _LangInfo("Python", "review_py.template", re.compile(r"^.+\.py$"))
-    CSHARP = _LangInfo("C#", "review_cs.template", re.compile(r"^.+\.cs$"))
-    VBNET = _LangInfo("VB.NET", "review_vb.template", re.compile(r"^.+\.vb$"))
-    JAVA = _LangInfo("Java", "review_java.template", re.compile(r"^.+\.java$"))
-    KOTLIN = _LangInfo("Kotlin", "review_kt.template", re.compile(r"^.+\.kt$"))
-
-    @property
-    def display_name(self) -> str:
-        return self.value.display_name
-
-    @property
-    def template_filename(self) -> str:
-        return self.value.template_filename
-
-    @property
-    def filename_pattern(self) -> re.Pattern[str]:
-        return self.value.filename_pattern
+    PYTHON = "python"
+    CSHARP = "csharp"
+    VBNET = "vbnet"
+    JAVA = "java"
+    KOTLIN = "kotlin"
 
     @classmethod
-    def from_str(cls, language: str) -> Language:
-        for lang in cls:
-            if lang.name == language.upper():
-                return lang
-        raise errors.InvalidArgumentError(f"unsupported language: '{language}'")
+    def from_str(cls, language_str: str) -> Language:
+        languages: dict[str, Language] = {
+            "python": cls.PYTHON,
+            "csharp": cls.CSHARP,
+            "vbnet": cls.VBNET,
+            "java": cls.JAVA,
+            "kotlin": cls.KOTLIN,
+        }
+
+        try:
+            return languages[language_str.strip().lower()]
+        except KeyError as ex:
+            raise errors.InvalidArgumentError(
+                f"unsupported language: '{language_str}': {ex}"
+            ) from ex
+
+
+@dataclass(frozen=True)
+class LanguageTemplateInfo:
+    display_name: str
+    template_filename: str
+    source_filename_pattern: re.Pattern[str]
+
+
+# 対応言語が増えた場合はここに要素を追加してください。
+# プログラム内からの更新はしないでください。
+_LANGUAGE_INFO: dict[Language, LanguageTemplateInfo] = {
+    Language.PYTHON: LanguageTemplateInfo(
+        "Python", "review_py.template", re.compile(r"^.+\.py$")
+    ),
+    Language.CSHARP: LanguageTemplateInfo(
+        "C#", "review_cs.template", re.compile(r"^.+\.cs$")
+    ),
+    Language.VBNET: LanguageTemplateInfo(
+        "VB.NET", "review_vb.template", re.compile(r"^.+\.vb$")
+    ),
+    Language.JAVA: LanguageTemplateInfo(
+        "Java", "review_java.template", re.compile(r"^.+\.java$")
+    ),
+    Language.KOTLIN: LanguageTemplateInfo(
+        "Kotlin", "review_kt.template", re.compile(r"^.+\.kt$")
+    ),
+}
+
+
+def get_language_default_filename_pattern(language: Language) -> re.Pattern[str]:
+    try:
+        return _LANGUAGE_INFO[language].source_filename_pattern
+    except KeyError as ex:
+        raise errors.InvalidStatusError(
+            f"language filename pattern is not implemented: {language.value}: {ex}"
+        ) from ex
+
+
+def get_language_template_file_name(language: Language) -> str:
+    return _LANGUAGE_INFO[language].template_filename
+
+
+def get_template_display_name(language: Language) -> str:
+    return _LANGUAGE_INFO[language].display_name
