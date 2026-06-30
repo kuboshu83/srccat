@@ -10,9 +10,8 @@ def run(
     language: srccat.model.Language,
     collector: srccat.collector.FilteredFileCollector,
     encoding: srccat.model.Encoding,
-):
-    text = build_review_document(language, collector, encoding)
-    print(text)
+) -> str:
+    return build_review_document(language, collector, encoding)
 
 
 def build_review_document(
@@ -54,7 +53,8 @@ def main():
     )
     file_collector = srccat.collector.FilteredFileCollector(dir_scanner, filters)
     encoding = config.source_file_encoding
-    run(language, file_collector, encoding)
+    text = run(language, file_collector, encoding)
+    print(text)
 
     error_count = file_collector.error_count
     if error_count != 0:
