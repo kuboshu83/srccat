@@ -8,7 +8,7 @@ import logging
 
 def run(
     language: srccat.model.Language,
-    collector: srccat.filefilter.FilteredFileCollector,
+    collector: srccat.collector.FilteredFileCollector,
     encoding: srccat.model.Encoding,
 ):
     text = build_review_document(language, collector, encoding)
@@ -17,7 +17,7 @@ def run(
 
 def build_review_document(
     language: srccat.model.Language,
-    collector: srccat.filefilter.FilteredFileCollector,
+    collector: srccat.collector.FilteredFileCollector,
     encoding: srccat.model.Encoding,
 ) -> str:
     loaded_source_files: list[srccat.model.LoadedSourceCode] = []
@@ -47,14 +47,18 @@ def main():
         is_recursive=config.scan_directory_recursive,
         additional_reject_dir_name_patterns=config.reject_dir_name_patterns,
     )
-    file_collector = srccat.collector.DFSDirectoryScanner(
+    dir_scanner = srccat.collector.DFSDirectoryScanner(
         scan_root_dir=scan_root_dir,
         directory_rejector=scan_directory_filter,
         logger=logger,
     )
-    file_collector = srccat.filefilter.FilteredFileCollector(file_collector, filters)
+    file_collector = srccat.collector.FilteredFileCollector(dir_scanner, filters)
     encoding = config.source_file_encoding
     run(language, file_collector, encoding)
+
+    error_count = file_collector.error_count
+    if error_count != 0:
+        logger.warning(f"{error_count} errors occurred while collecting files.")
 
 
 if __name__ == "__main__":

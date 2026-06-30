@@ -7,6 +7,7 @@ import re
 import os
 
 import srccat.errors as errors
+import srccat.filefilter as filefilter
 
 # 常に検索から除外したいディレクトリはここに追加してください
 _DEFAULT_EXCLUDE_DIR_NAME_PATTERNS = (
@@ -89,6 +90,8 @@ def create_scan_directory_reject_filter(
 class DirectoryScanner(ABC):
     """
     ディレクトリを検索してファイルを収集するAPI
+    検索途中でエラーが発生した場合は、そのファイル/ディレクトリの検索をスキップします。
+    そして、エラーカウントを+1してから他のファイル/ディレクトリの検索を続けます。
     """
 
     def __init__(
@@ -102,9 +105,20 @@ class DirectoryScanner(ABC):
             )
         self._scan_root_dir = scan_root_dir
         self._directory_rejector = directory_rejector
+        self._error_count = 0
+
+    @property
+    def error_count(self) -> int:
+        return self._error_count
+
+    def _reset_error_count(self):
+        self._error_count = 0
 
     @abstractmethod
     def collect_files(self) -> Iterator[Path]:
+        """
+        このメソッドの最初で必ず_reset_error_countを実行してください。
+        """
         pass
 
 
@@ -122,11 +136,22 @@ class DFSDirectoryScanner(DirectoryScanner):
         super().__init__(scan_root_dir, directory_rejector)
         self._logger = logger
 
+    def _info_log_with_error(self, msg: str, ex: Exception):
+        self._error_count += 1
+        self._logger.info("%s: %s", msg, ex)
+
+    def _warning_log_with_error(self, msg: str, ex: Exception):
+        self._error_count += 1
+        self._logger.warning("%s: %s", msg, ex)
+
     @override
     def collect_files(self) -> Iterator[Path]:
         """
         深さ優先探索を採用
         """
+
+        self._reset_error_count()
+
         dir_stack: list[Path] = [self._scan_root_dir]
         while dir_stack:
             p = dir_stack.pop()
@@ -142,21 +167,48 @@ class DFSDirectoryScanner(DirectoryScanner):
                                     dir_path
                                 ):
                                     dir_stack.append(dir_path)
-                        except FileNotFoundError:
-                            self._logger.info(
-                                "skip file scan: file not found: %s", entry.path
+                        except FileNotFoundError as ex:
+                            self._info_log_with_error(
+                                f"skip file scan: file not found: {entry.path}", ex
                             )
                             continue
                         except PermissionError as ex:
-                            self._logger.warning(
-                                "skip file scan: %s: %s", entry.path, ex
+                            self._warning_log_with_error(
+                                "skip file scan: permission error :{entry.path}", ex
                             )
                             continue
-            except FileNotFoundError:
-                self._logger.info("skip directory scan: directory not found: %s", p)
-                continue
-            except PermissionError as ex:
-                self._logger.warning(
-                    "skip directory scan: premission error:%s, %s", p, ex
+            except FileNotFoundError as ex:
+                self._info_log_with_error(
+                    "skip directory scan: directory not found: {p}", ex
                 )
                 continue
+            except PermissionError as ex:
+                self._warning_log_with_error(
+                    "skip directory scan: permission error: {p}", ex
+                )
+                continue
+
+
+class FilteredFileCollector:
+
+    def __init__(
+        self,
+        file_collector: DirectoryScanner,
+        file_filter: filefilter.FileFilter,
+    ):
+        self._file_collector = file_collector
+        self._file_filter = file_filter
+
+    @property
+    def error_count(self) -> int:
+        """
+        ファイル収集の際に発生したエラー数。
+        collect_target_filesメソッドを呼び出すたびに0にリセットされます。
+        """
+        return self._file_collector.error_count
+
+    def collect_target_files(self) -> Iterator[Path]:
+        for file_path in self._file_collector.collect_files():
+            if not self._file_filter.is_target(file_path):
+                continue
+            yield file_path

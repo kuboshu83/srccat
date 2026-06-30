@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 import re
 from pathlib import Path
-from typing import Sequence, override, Iterator
-import srccat.collector
+from typing import Sequence, override
 
 
 class FileFilter(ABC):
@@ -35,7 +34,9 @@ class FileFilterOrCondition(FileFilter):
         return False
 
 
-def create_file_name_filter(file_name_patterns: Sequence[re.Pattern[str]]) -> FileFilter:
+def create_file_name_filter(
+    file_name_patterns: Sequence[re.Pattern[str]],
+) -> FileFilter:
     """
     パターンが１つも渡されなかったら、名前でフィルタしないことになるので常にTrueを返すフィルタを作成する。
     """
@@ -44,20 +45,3 @@ def create_file_name_filter(file_name_patterns: Sequence[re.Pattern[str]]) -> Fi
     for pattern in file_name_patterns:
         file_name_filters.append(FileNameFilter(pattern))
     return FileFilterOrCondition(file_name_filters)
-
-
-class FilteredFileCollector:
-
-    def __init__(
-        self,
-        file_collector: srccat.collector.DirectoryScanner,
-        file_filter: FileFilter,
-    ):
-        self._file_collector = file_collector
-        self._file_filter = file_filter
-
-    def collect_target_files(self) -> Iterator[Path]:
-        for filepath in self._file_collector.collect_files():
-            if not self._file_filter.is_target(filepath):
-                continue
-            yield filepath
