@@ -52,47 +52,6 @@ def create_file_name_filter(
     return FileFilterOrCondition(file_name_filters)
 
 
-# 対応言語が増えた場合はここに要素を追加してください。
-# プログラム内からの更新はしないでください。
-_FILE_FILTERS: dict[model.Language, Sequence[FileFilter]] = {
-    model.Language.PYTHON: tuple(
-        [
-            FileNameFilter(
-                model.get_language_default_filename_pattern(model.Language.PYTHON)
-            ),
-        ]
-    ),
-    model.Language.CSHARP: tuple(
-        [
-            FileNameFilter(
-                model.get_language_default_filename_pattern(model.Language.CSHARP)
-            ),
-        ]
-    ),
-    model.Language.VBNET: tuple(
-        [
-            FileNameFilter(
-                model.get_language_default_filename_pattern(model.Language.VBNET)
-            ),
-        ]
-    ),
-    model.Language.JAVA: tuple(
-        [
-            FileNameFilter(
-                model.get_language_default_filename_pattern(model.Language.JAVA)
-            ),
-        ]
-    ),
-    model.Language.KOTLIN: tuple(
-        [
-            FileNameFilter(
-                model.get_language_default_filename_pattern(model.Language.KOTLIN)
-            ),
-        ]
-    ),
-}
-
-
 def build_filename_fileter(
     language: model.Language, additional_patterns: Sequence[re.Pattern[str]]
 ) -> FileFilter:
